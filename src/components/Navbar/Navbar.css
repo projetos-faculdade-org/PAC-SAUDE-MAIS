@@ -1,34 +1,73 @@
 .header {
-    position:fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    padding: 20px 10%;
-    background-color: fff;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 100;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 18px 10%;
+  background-color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
-.logo {
-    font-size: 32px;
-    color: #000;
-    font-weight: 700;
- }
 .logo img {
-    width: 80px;
-    height: auto;
+  width: 80px;
+  height: auto;
+  display: block;
+}
+
+.navbar {
+  display: flex;
+  align-items: center;
+  gap: 0;
 }
 
 .navbar a {
-    position: relative;
-    font-size: 18px;
-    color: #000;
-    font-weight: 500;
-    margin-left: 40px;
+  position: relative;
+  font-size: 16px;
+  color: #000;
+  font-weight: 500;
+  margin-left: 36px;
+  transition: color 0.2s;
 }
 
 .navbar a:hover {
-    color: gray;
+  color: #2e7d32;
+}
+
+/* Botão CTA (Cadastro) */
+.navbar-cta {
+  background-color: #2e7d32 !important;
+  color: #fff !important;
+  padding: 9px 20px;
+  border-radius: 6px;
+  font-weight: 600 !important;
+  margin-left: 36px;
+}
+
+.navbar-cta:hover {
+  background-color: #1b5e20 !important;
+  color: #fff !important;
+}
+
+/* Botão Sair */
+.navbar-logout-btn {
+  background: none;
+  border: 1.5px solid #c62828;
+  color: #c62828;
+  font-size: 16px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 36px;
+  padding: 8px 18px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.navbar-logout-btn:hover {
+  background-color: #c62828;
+  color: #fff;
 }

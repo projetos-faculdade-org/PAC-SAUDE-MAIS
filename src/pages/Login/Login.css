@@ -1,0 +1,156 @@
+.auth-page {
+  min-height: 100vh;
+  padding-top: 80px;
+  background-color: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 20px 60px;
+}
+
+.auth-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e8e8e8;
+}
+
+.auth-logo {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.auth-logo img {
+  width: 80px;
+  height: auto;
+}
+
+.auth-card h1 {
+  font-size: 26px;
+  font-weight: 800;
+  color: #000;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.auth-subtitle {
+  font-size: 15px;
+  color: #666;
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  padding: 12px 14px;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  font-size: 15px;
+  font-family: 'Montserrat', sans-serif;
+  color: #000;
+  outline: none;
+  transition: border-color 0.2s;
+  background: #fff;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #2e7d32;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.auth-error {
+  background-color: #ffeaea;
+  border: 1px solid #f5c2c2;
+  color: #c62828;
+  padding: 12px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-auth {
+  width: 100%;
+  padding: 14px;
+  background-color: #2e7d32;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 4px;
+}
+
+.btn-auth:hover {
+  background-color: #1b5e20;
+}
+
+.auth-footer-text {
+  text-align: center;
+  font-size: 14px;
+  color: #555;
+  margin-top: 20px;
+}
+
+.auth-footer-text a {
+  color: #2e7d32;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-footer-text a:hover {
+  text-decoration: underline;
+}
+
+.poc-hint {
+  margin-top: 24px;
+  background-color: #f0f4ff;
+  border: 1px solid #c5d0f0;
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #3a4a8a;
+  text-align: center;
+}
+
+.poc-hint code {
+  background-color: #e0e8ff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 32px 20px;
+  }
+}
