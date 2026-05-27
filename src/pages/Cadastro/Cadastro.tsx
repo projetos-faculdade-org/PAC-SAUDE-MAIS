@@ -1,9 +1,12 @@
-import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext'
 import './Cadastro.css'
 
 export default function Cadastro() {
-  const [showSuccess, setShowSuccess] = useState(false)
+  const { register } = useAuth()
+  const navigate = useNavigate()
+
   const [form, setForm] = useState({
     companyName: '',
     responsible: '',
@@ -13,12 +16,13 @@ export default function Cadastro() {
     confirmPassword: '',
   })
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault()
     setError('')
 
@@ -27,25 +31,21 @@ export default function Cadastro() {
       return
     }
 
-    // POC: apenas exibe mensagem de sucesso
-    setShowSuccess(true)
-  }
-
-  if (showSuccess) {
-    return (
-      <main className="auth-page">
-        <div className="auth-card success-card">
-          <div className="success-icon">✅</div>
-          <h1>Em breve!</h1>
-          <p className="auth-subtitle">
-            O cadastro de empresas estará disponível em breve. Obrigado pelo seu interesse no <strong>Jaraguá mais saudável</strong>!
-          </p>
-          <Link to="/login" className="btn-auth" style={{ display: 'block', textAlign: 'center' }}>
-            Voltar ao login
-          </Link>
-        </div>
-      </main>
-    )
+    setLoading(true)
+    try {
+      await register({
+        companyName: form.companyName,
+        responsible: form.responsible,
+        email: form.email,
+        phone: form.phone || undefined,
+        password: form.password,
+      })
+      navigate('/empresa/dashboard')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao cadastrar empresa.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -141,7 +141,9 @@ export default function Cadastro() {
 
           {error && <p className="auth-error">{error}</p>}
 
-          <button type="submit" className="btn-auth">Cadastrar empresa</button>
+          <button type="submit" className="btn-auth" disabled={loading}>
+            {loading ? 'Cadastrando...' : 'Cadastrar empresa'}
+          </button>
         </form>
 
         <p className="auth-footer-text">

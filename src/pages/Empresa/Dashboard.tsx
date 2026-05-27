@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useActivities, type Activity } from '../../contexts/ActivitiesContext'
@@ -30,6 +30,8 @@ export default function Dashboard() {
   const [form, setForm] = useState<ActivityFormData>(EMPTY_FORM)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [formError, setFormError] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   function handleLogout() {
     logout()
@@ -56,6 +58,7 @@ export default function Dashboard() {
   }
 
   function closeModal() {
+    if (saving) return
     setShowModal(false)
     setEditing(null)
     setForm(EMPTY_FORM)
@@ -68,7 +71,7 @@ export default function Dashboard() {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault()
     setFormError('')
 
@@ -82,22 +85,33 @@ export default function Dashboard() {
       description: form.description.trim(),
       schedule: form.schedule.trim(),
       location: form.location.trim() || undefined,
-      companyId: user!.id,
-      companyName: user!.name,
     }
 
-    if (editing) {
-      editActivity(editing.id, payload)
-    } else {
-      addActivity(payload)
+    setSaving(true)
+    try {
+      if (editing) {
+        await editActivity(editing.id, payload)
+      } else {
+        await addActivity(payload)
+      }
+      closeModal()
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Erro ao salvar atividade.')
+    } finally {
+      setSaving(false)
     }
-
-    closeModal()
   }
 
-  function handleDelete(id: string) {
-    deleteActivity(id)
-    setDeleteConfirm(null)
+  async function handleDelete(id: string) {
+    setDeleting(true)
+    try {
+      await deleteActivity(id)
+      setDeleteConfirm(null)
+    } catch {
+      setDeleteConfirm(null)
+    } finally {
+      setDeleting(false)
+    }
   }
 
   return (
@@ -105,10 +119,11 @@ export default function Dashboard() {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <img src="/jaraguasaudavel.png" alt="Saúde Mais" />
+          <a href="/"><img src="/jaraguasaudavel.png" alt="Saúde Mais" /></a>
         </div>
         <nav className="sidebar-nav">
-          <span className="sidebar-nav-item active">📋 Minhas Atividades</span>
+          <span className="sidebar-nav-item active">Minhas Atividades</span>
+          <a className="sidebar-nav-item active" href='/'>Voltar para Home</a>
         </nav>
         <div className="sidebar-footer">
           <div className="sidebar-user">
@@ -257,11 +272,11 @@ export default function Dashboard() {
               {formError && <p className="auth-error">{formError}</p>}
 
               <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={closeModal}>
+                <button type="button" className="btn-cancel" onClick={closeModal} disabled={saving}>
                   Cancelar
                 </button>
-                <button type="submit" className="btn-save">
-                  {editing ? 'Salvar alterações' : 'Criar atividade'}
+                <button type="submit" className="btn-save" disabled={saving}>
+                  {saving ? 'Salvando...' : editing ? 'Salvar alterações' : 'Criar atividade'}
                 </button>
               </div>
             </form>
@@ -271,7 +286,7 @@ export default function Dashboard() {
 
       {/* Modal: confirmar exclusão */}
       {deleteConfirm && (
-        <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
+        <div className="modal-overlay" onClick={() => !deleting && setDeleteConfirm(null)}>
           <div className="modal modal-confirm" onClick={(e) => e.stopPropagation()}>
             <div className="confirm-icon">⚠️</div>
             <h2>Excluir atividade?</h2>
@@ -282,14 +297,16 @@ export default function Dashboard() {
               <button
                 className="btn-cancel"
                 onClick={() => setDeleteConfirm(null)}
+                disabled={deleting}
               >
                 Cancelar
               </button>
               <button
                 className="btn-delete-confirm"
                 onClick={() => handleDelete(deleteConfirm)}
+                disabled={deleting}
               >
-                Sim, excluir
+                {deleting ? 'Excluindo...' : 'Sim, excluir'}
               </button>
             </div>
           </div>

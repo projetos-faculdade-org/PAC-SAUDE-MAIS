@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import './Login.css'
@@ -10,16 +10,20 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault()
     setError('')
+    setLoading(true)
 
-    const success = login(email, password)
-    if (success) {
+    try {
+      await login(email, password)
       navigate('/empresa/dashboard')
-    } else {
-      setError('E-mail ou senha incorretos. Verifique suas credenciais.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'E-mail ou senha incorretos.')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -60,17 +64,15 @@ export default function Login() {
 
           {error && <p className="auth-error">{error}</p>}
 
-          <button type="submit" className="btn-auth">Entrar</button>
+          <button type="submit" className="btn-auth" disabled={loading}>
+            {loading ? 'Entrando...' : 'Entrar'}
+          </button>
         </form>
 
         <p className="auth-footer-text">
           Ainda não tem uma conta?{' '}
           <Link to="/cadastro">Cadastre sua empresa</Link>
         </p>
-
-        <div className="poc-hint">
-          <strong>POC:</strong> use <code>empresa@saude.com</code> / <code>saude123</code>
-        </div>
       </div>
     </main>
   )
