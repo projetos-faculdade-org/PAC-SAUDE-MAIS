@@ -477,19 +477,62 @@
   font-weight: 500;
 }
 
+/* ─── Sidebar toggle button (mobile only) ─── */
+.sidebar-toggle {
+  display: none;
+  background: none;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 10px;
+  line-height: 1;
+  color: #000;
+  flex-shrink: 0;
+}
+
+/* ─── Sidebar overlay (mobile) ─── */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  z-index: 199;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
 @media (max-width: 768px) {
   .sidebar {
-    display: none;
+    transform: translateX(-100%);
+    transition: transform 0.28s ease;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-toggle {
+    display: flex;
+    align-items: center;
+    margin-top: 4px;
   }
 
   .dashboard-main {
     margin-left: 0;
-    padding: 80px 20px 40px;
+    padding: 28px 20px 40px;
   }
 
   .dashboard-topbar {
     flex-direction: column;
     gap: 16px;
+  }
+
+  .topbar-left {
+    align-items: center;
   }
 
   .activities-table-wrapper {
@@ -498,5 +541,20 @@
 
   .activities-table {
     min-width: 600px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-main {
+    padding: 20px 14px 32px;
+  }
+
+  .dashboard-topbar h1 {
+    font-size: 22px;
+  }
+
+  .btn-new {
+    width: 100%;
+    text-align: center;
   }
 }

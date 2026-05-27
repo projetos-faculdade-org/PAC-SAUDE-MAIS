@@ -71,3 +71,122 @@
   background-color: #c62828;
   color: #fff;
 }
+
+/* ─── Hamburger Button ─── */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 110;
+}
+
+.hamburger-icon,
+.hamburger-icon::before,
+.hamburger-icon::after {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background-color: #000;
+  transition: all 0.25s ease;
+  position: relative;
+}
+
+.hamburger-icon::before,
+.hamburger-icon::after {
+  content: '';
+  position: absolute;
+  left: 0;
+}
+
+.hamburger-icon::before { top: -7px; }
+.hamburger-icon::after  { top: 7px; }
+
+/* X quando aberto */
+.hamburger-icon.open {
+  background-color: transparent;
+}
+.hamburger-icon.open::before {
+  top: 0;
+  transform: rotate(45deg);
+}
+.hamburger-icon.open::after {
+  top: 0;
+  transform: rotate(-45deg);
+}
+
+/* ─── Overlay ─── */
+.navbar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+}
+
+/* ─── Mobile ─── */
+@media (max-width: 768px) {
+  .header {
+    padding: 16px 5%;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .navbar-overlay {
+    display: block;
+  }
+
+  .navbar {
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    padding: 16px 5% 24px;
+    z-index: 100;
+    gap: 4px;
+  }
+
+  .navbar.open {
+    display: flex;
+  }
+
+  .navbar a {
+    font-size: 17px;
+    margin-left: 0;
+    padding: 10px 0;
+    width: 100%;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .navbar a:last-child {
+    border-bottom: none;
+  }
+
+  .navbar-cta {
+    margin-left: 0 !important;
+    margin-top: 8px;
+    width: 100%;
+    text-align: center;
+    display: block;
+    padding: 12px 20px !important;
+  }
+
+  .navbar-logout-btn {
+    margin-left: 0;
+    margin-top: 8px;
+    width: 100%;
+    text-align: center;
+  }
+}

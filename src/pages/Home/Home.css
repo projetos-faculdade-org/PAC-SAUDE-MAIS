@@ -264,10 +264,15 @@
     flex-direction: column;
     text-align: center;
     padding: 60px 5%;
+    min-height: unset;
   }
 
   .hero-content h1 {
-    font-size: 36px;
+    font-size: 38px;
+  }
+
+  .hero-subtitle {
+    font-size: 16px;
   }
 
   .hero-actions {
@@ -278,12 +283,26 @@
     display: none;
   }
 
+  .how-it-works {
+    padding: 60px 5%;
+  }
+
+  .how-it-works h2 {
+    font-size: 28px;
+    margin-bottom: 32px;
+  }
+
   .steps-grid {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
 
   .preview-activities {
     padding: 60px 5%;
+  }
+
+  .preview-header h2 {
+    font-size: 28px;
   }
 
   .preview-header {
@@ -293,5 +312,60 @@
 
   .preview-grid {
     grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .cta-section {
+    padding: 60px 5%;
+  }
+
+  .cta-section h2 {
+    font-size: 26px;
+  }
+
+  .cta-section p {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: 48px 20px;
+  }
+
+  .hero-content h1 {
+    font-size: 30px;
+  }
+
+  .hero-subtitle {
+    font-size: 15px;
+    margin-bottom: 28px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-primary,
+  .btn-outline {
+    text-align: center;
+    padding: 14px 20px;
+  }
+
+  .how-it-works {
+    padding: 40px 20px;
+  }
+
+  .step-card {
+    padding: 28px 20px;
+  }
+
+  .preview-activities {
+    padding: 40px 20px;
+  }
+
+  .cta-section {
+    padding: 48px 20px;
   }
 }

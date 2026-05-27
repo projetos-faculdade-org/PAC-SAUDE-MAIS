@@ -32,6 +32,7 @@ export default function Dashboard() {
   const [formError, setFormError] = useState('')
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   function handleLogout() {
     logout()
@@ -116,14 +117,21 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-page">
+      {/* Sidebar overlay (mobile) */}
+      {sidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+      )}
+
       {/* Sidebar */}
-      <aside className="sidebar">
+      <aside className={`sidebar${sidebarOpen ? ' open' : ''}`}>
         <div className="sidebar-logo">
-          <a href="/"><img src="/jaraguasaudavel.png" alt="Saúde Mais" /></a>
+          <a href="/" onClick={() => setSidebarOpen(false)}>
+            <img src="/jaraguasaudavel.png" alt="Saúde Mais" />
+          </a>
         </div>
         <nav className="sidebar-nav">
           <span className="sidebar-nav-item active">Minhas Atividades</span>
-          <a className="sidebar-nav-item active" href='/'>Voltar para Home</a>
+          <a className="sidebar-nav-item active" href='/' onClick={() => setSidebarOpen(false)}>Voltar para Home</a>
         </nav>
         <div className="sidebar-footer">
           <div className="sidebar-user">
@@ -142,9 +150,18 @@ export default function Dashboard() {
       {/* Main content */}
       <main className="dashboard-main">
         <div className="dashboard-topbar">
-          <div>
-            <h1>Minhas Atividades</h1>
-            <p>Gerencie as atividades da sua empresa.</p>
+          <div className="topbar-left">
+            <button
+              className="sidebar-toggle"
+              aria-label="Abrir menu"
+              onClick={() => setSidebarOpen(prev => !prev)}
+            >
+              ☰
+            </button>
+            <div>
+              <h1>Minhas Atividades</h1>
+              <p>Gerencie as atividades da sua empresa.</p>
+            </div>
           </div>
           <button onClick={openCreate} className="btn-new">
             + Nova atividade

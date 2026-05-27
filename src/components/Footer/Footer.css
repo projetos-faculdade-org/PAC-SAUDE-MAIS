@@ -81,3 +81,18 @@
     width: 140px;
   }
 }
+
+@media (max-width: 480px) {
+  .footer {
+    padding: 32px 20px;
+  }
+
+  .links {
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .direitos {
+    font-size: 13px;
+  }
+}

@@ -37,7 +37,7 @@ const Footer = () => {
     <div className='separator'></div>
 
     <div className='direitos'>
-        <p>©2025 Jaraguá Mais Saudável. Todos os direitos reservados.</p>
+        <p>©2026 Jaraguá Mais Saudável. Todos os direitos reservados.</p>
     </div>
 
 </footer>
