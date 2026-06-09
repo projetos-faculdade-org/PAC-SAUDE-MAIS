@@ -8,18 +8,34 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum CompanyStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model Company {
-  id           String     @id @default(uuid())
+  id           String        @id @default(uuid())
   name         String
-  email        String     @unique
+  email        String        @unique
   responsible  String
   phone        String?
   passwordHash String
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  status       CompanyStatus @default(PENDING)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   activities   Activity[]
 
   @@map("companies")
+}
+
+model Admin {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  @@map("admins")
 }
 
 model Activity {

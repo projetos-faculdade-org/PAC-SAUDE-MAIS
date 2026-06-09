@@ -26,7 +26,7 @@ export async function register(req: Request, res: Response): Promise<void> {
 
   const company = await prisma.company.create({
     data: { name: companyName, responsible, email, phone, passwordHash },
-    select: { id: true, name: true, email: true, responsible: true, phone: true },
+    select: { id: true, name: true, email: true, responsible: true, phone: true, status: true },
   })
 
   const token = jwt.sign({ companyId: company.id }, process.env.JWT_SECRET!, {
@@ -69,6 +69,7 @@ export async function login(req: Request, res: Response): Promise<void> {
       email: company.email,
       responsible: company.responsible,
       phone: company.phone,
+      status: company.status,
     },
   })
 }
@@ -76,7 +77,7 @@ export async function login(req: Request, res: Response): Promise<void> {
 export async function me(req: Request & { companyId?: string }, res: Response): Promise<void> {
   const company = await prisma.company.findUnique({
     where: { id: req.companyId },
-    select: { id: true, name: true, email: true, responsible: true, phone: true, createdAt: true },
+    select: { id: true, name: true, email: true, responsible: true, phone: true, status: true, createdAt: true },
   })
 
   if (!company) {
