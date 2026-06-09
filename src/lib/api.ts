@@ -4,8 +4,12 @@ function getToken() {
   return localStorage.getItem('@saude:token')
 }
 
-async function request(path: string, init: RequestInit = {}) {
-  const token = getToken()
+function getAdminToken() {
+  return localStorage.getItem('@saude:admin-token')
+}
+
+async function request(path: string, init: RequestInit = {}, tokenFn: () => string | null = getToken) {
+  const token = tokenFn()
   const res = await fetch(`${BASE}${path}`, {
     ...init,
     headers: {
@@ -27,4 +31,11 @@ export const api = {
   post:   (path: string, data: unknown) => request(path, { method: 'POST',   body: JSON.stringify(data) }),
   put:    (path: string, data: unknown) => request(path, { method: 'PUT',    body: JSON.stringify(data) }),
   delete: (path: string)                => request(path, { method: 'DELETE' }),
+}
+
+export const adminApi = {
+  get:    (path: string)                => request(path, {}, getAdminToken),
+  post:   (path: string, data: unknown) => request(path, { method: 'POST',   body: JSON.stringify(data) }, getAdminToken),
+  put:    (path: string, data: unknown) => request(path, { method: 'PUT',    body: JSON.stringify(data) }, getAdminToken),
+  delete: (path: string)                => request(path, { method: 'DELETE' }, getAdminToken),
 }

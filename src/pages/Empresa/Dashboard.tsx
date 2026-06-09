@@ -18,12 +18,60 @@ const EMPTY_FORM: ActivityFormData = {
   location: '',
 }
 
+function PendingScreen({ onLogout }: { onLogout: () => void }) {
+  return (
+    <div className="dashboard-page">
+      <aside className="sidebar">
+        <div className="sidebar-logo">
+          <a href="/"><img src="/jaraguasaudavel.png" alt="Saúde Mais" /></a>
+        </div>
+        <nav className="sidebar-nav">
+          <span className="sidebar-nav-item active">Minha Conta</span>
+        </nav>
+        <div className="sidebar-footer">
+          <button onClick={onLogout} className="btn-logout">Sair</button>
+        </div>
+      </aside>
+      <main className="dashboard-main">
+        <div className="dashboard-empty status-screen">
+          <span className="empty-icon">⏳</span>
+          <h3>Aguardando aprovação</h3>
+          <p>Seu cadastro foi recebido e está sendo analisado pela equipe administrativa.<br />Você será notificado assim que sua conta for aprovada.</p>
+        </div>
+      </main>
+    </div>
+  )
+}
+
+function RejectedScreen({ onLogout }: { onLogout: () => void }) {
+  return (
+    <div className="dashboard-page">
+      <aside className="sidebar">
+        <div className="sidebar-logo">
+          <a href="/"><img src="/jaraguasaudavel.png" alt="Saúde Mais" /></a>
+        </div>
+        <nav className="sidebar-nav">
+          <span className="sidebar-nav-item active">Minha Conta</span>
+        </nav>
+        <div className="sidebar-footer">
+          <button onClick={onLogout} className="btn-logout">Sair</button>
+        </div>
+      </aside>
+      <main className="dashboard-main">
+        <div className="dashboard-empty status-screen">
+          <span className="empty-icon">❌</span>
+          <h3>Cadastro recusado</h3>
+          <p>Infelizmente seu cadastro não foi aprovado pela equipe administrativa.<br />Entre em contato conosco para mais informações.</p>
+        </div>
+      </main>
+    </div>
+  )
+}
+
 export default function Dashboard() {
   const { user, logout } = useAuth()
   const { activities, addActivity, editActivity, deleteActivity } = useActivities()
   const navigate = useNavigate()
-
-  const myActivities = activities.filter((a) => a.companyId === user?.id)
 
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Activity | null>(null)
@@ -33,6 +81,11 @@ export default function Dashboard() {
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  const myActivities = activities.filter((a) => a.companyId === user?.id)
+
+  if (user?.status === 'PENDING') return <PendingScreen onLogout={() => { logout(); navigate('/login') }} />
+  if (user?.status === 'REJECTED') return <RejectedScreen onLogout={() => { logout(); navigate('/login') }} />
 
   function handleLogout() {
     logout()
