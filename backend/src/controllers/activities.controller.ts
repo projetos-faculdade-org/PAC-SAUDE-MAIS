@@ -42,6 +42,12 @@ export async function createActivity(req: AuthRequest, res: Response): Promise<v
     return
   }
 
+  const company = await prisma.company.findUnique({ where: { id: req.companyId! } })
+  if (!company || company.status !== 'APPROVED') {
+    res.status(403).json({ error: 'Empresa precisa ser aprovada para publicar atividades' })
+    return
+  }
+
   const activity = await prisma.activity.create({
     data: {
       name,

@@ -1,0 +1,137 @@
+.admin-avatar {
+  background-color: #1565c0 !important;
+}
+
+/* Filtros */
+.admin-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 20px;
+  border: 1.5px solid #ddd;
+  background: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  border-color: #aaa;
+  color: #000;
+}
+
+.filter-btn.active {
+  background-color: #000;
+  border-color: #000;
+  color: #fff;
+}
+
+.filter-btn.filter-pending.active {
+  background-color: #e65100;
+  border-color: #e65100;
+}
+
+.filter-btn.filter-approved.active {
+  background-color: #2e7d32;
+  border-color: #2e7d32;
+}
+
+.filter-btn.filter-rejected.active {
+  background-color: #c62828;
+  border-color: #c62828;
+}
+
+.filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 11px;
+  font-size: 12px;
+  padding: 0 6px;
+}
+
+.filter-btn.active .filter-count {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Status badges */
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.status-badge.status-pending {
+  background-color: #fff3e0;
+  color: #e65100;
+}
+
+.status-badge.status-approved {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge.status-rejected {
+  background-color: #fce4e4;
+  color: #c62828;
+}
+
+/* Botões de ação */
+.btn-approve {
+  padding: 6px 14px;
+  border-radius: 5px;
+  border: none;
+  font-size: 13px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.btn-approve:hover:not(:disabled) {
+  background-color: #2e7d32;
+  color: #fff;
+}
+
+.btn-reject {
+  padding: 6px 14px;
+  border-radius: 5px;
+  border: none;
+  font-size: 13px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: #fce4e4;
+  color: #c62828;
+}
+
+.btn-reject:hover:not(:disabled) {
+  background-color: #c62828;
+  color: #fff;
+}
+
+.btn-approve:disabled,
+.btn-reject:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

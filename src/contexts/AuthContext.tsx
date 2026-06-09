@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
-import { api } from '../lib/api'
+import { api, adminApi } from '../lib/api'
 
 export interface Company {
   id: string
@@ -7,6 +7,7 @@ export interface Company {
   email: string
   responsible?: string
   phone?: string
+  status?: 'PENDING' | 'APPROVED' | 'REJECTED'
 }
 
 export interface RegisterData {
@@ -19,19 +20,24 @@ export interface RegisterData {
 
 interface AuthContextData {
   user: Company | null
+  isAdmin: boolean
   loading: boolean
   login: (email: string, password: string) => Promise<void>
   register: (data: RegisterData) => Promise<void>
   logout: () => void
+  adminLogin: (email: string, password: string) => Promise<void>
+  adminLogout: () => void
 }
 
-const TOKEN_KEY = '@saude:token'
-const USER_KEY  = '@saude:user'
+const TOKEN_KEY       = '@saude:token'
+const USER_KEY        = '@saude:user'
+const ADMIN_TOKEN_KEY = '@saude:admin-token'
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<Company | null>(null)
+  const [user, setUser]       = useState<Company | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
 
   const applySession = useCallback((token: string, company: Company) => {
@@ -41,6 +47,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
+    const adminToken = localStorage.getItem(ADMIN_TOKEN_KEY)
+    if (adminToken) {
+      setIsAdmin(true)
+      setLoading(false)
+      return
+    }
+
     const token = localStorage.getItem(TOKEN_KEY)
     const stored = sessionStorage.getItem(USER_KEY)
 
@@ -82,8 +95,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }
 
+  async function adminLogin(email: string, password: string) {
+    const { token } = await adminApi.post('/admin/login', { email, password })
+    localStorage.setItem(ADMIN_TOKEN_KEY, token)
+    setIsAdmin(true)
+  }
+
+  function adminLogout() {
+    localStorage.removeItem(ADMIN_TOKEN_KEY)
+    setIsAdmin(false)
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isAdmin, loading, login, register, logout, adminLogin, adminLogout }}>
       {children}
     </AuthContext.Provider>
   )
