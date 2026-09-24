@@ -4,12 +4,13 @@ import { useAuth } from '../../contexts/AuthContext'
 import './Navbar.css'
 
 const Navbar = () => {
-  const { user, logout } = useAuth()
+  const { user, isAdmin, logout, adminLogout } = useAuth()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
 
   function handleLogout() {
     logout()
+    adminLogout()
     navigate('/login')
     setMenuOpen(false)
   }
@@ -38,10 +39,13 @@ const Navbar = () => {
       <nav className={`navbar${menuOpen ? ' open' : ''}`}>
         <Link to="/" onClick={closeMenu}>Home</Link>
         <Link to="/atividades" onClick={closeMenu}>Atividades</Link>
+        <Link to="/noticias" onClick={closeMenu}>Notícias</Link>
 
-        {user ? (
+        {user || isAdmin ? (
           <>
-            <Link to="/empresa/dashboard" onClick={closeMenu}>Dashboard</Link>
+            <Link to={isAdmin ? '/admin/dashboard' : '/empresa/dashboard'} onClick={closeMenu}>
+              {isAdmin ? 'Painel admin' : 'Dashboard'}
+            </Link>
             <button className="navbar-logout-btn" onClick={handleLogout}>
               Sair
             </button>

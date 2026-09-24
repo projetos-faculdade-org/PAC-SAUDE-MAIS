@@ -105,6 +105,14 @@ export function nextOccurrence(a: Activity, from = new Date()): Date | null {
   return null
 }
 
+/** Mais próximas primeiro; horários em texto livre (sem data calculável) vão para o fim. */
+export function sortByNextOccurrence(list: Activity[], from = new Date()) {
+  return list
+    .map((a) => ({ a, next: nextOccurrence(a, from)?.getTime() ?? Infinity }))
+    .sort((x, y) => x.next - y.next)
+    .map(({ a }) => a)
+}
+
 export function isPast(a: Activity, from = new Date()) {
   return a.scheduleType === 'ONCE' && nextOccurrence(a, from) === null
 }
@@ -113,12 +121,4 @@ export function whatsappLink(a: Activity) {
   if (!a.whatsapp) return null
   const text = `Olá! Vi a atividade "${a.name}" no Jaraguá Mais Saudável e quero participar.`
   return `https://wa.me/${a.whatsapp}?text=${encodeURIComponent(text)}`
-}
-
-/** 5547999998888 → (47) 99999-8888 */
-export function formatPhone(digits: string | null | undefined) {
-  if (!digits) return ''
-  const local = digits.startsWith('55') && digits.length >= 12 ? digits.slice(2) : digits
-  const m = local.match(/^(\d{2})(\d{4,5})(\d{4})$/)
-  return m ? `(${m[1]}) ${m[2]}-${m[3]}` : digits
 }

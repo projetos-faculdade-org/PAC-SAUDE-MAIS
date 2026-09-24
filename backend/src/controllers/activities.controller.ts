@@ -10,7 +10,7 @@ const includeCompany = {
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
-function toDTO(a: Activity & { company: { name: string } }) {
+export function toActivityDTO(a: Activity & { company: { name: string } }) {
   return {
     id: a.id,
     name: a.name,
@@ -118,13 +118,13 @@ function parseActivityInput(body: Record<string, unknown>): ParseResult {
 export async function listActivities(_req: AuthRequest, res: Response): Promise<void> {
   const activities = await prisma.activity.findMany({
     where: {
-      company: { status: 'APPROVED' },
+      company: { status: 'APPROVED', active: true },
       OR: [{ scheduleType: { not: 'ONCE' } }, { date: { gte: new Date(`${todayISO()}T00:00:00.000Z`) } }],
     },
     include: includeCompany,
     orderBy: { createdAt: 'desc' },
   })
-  res.json(activities.map(toDTO))
+  res.json(activities.map(toActivityDTO))
 }
 
 // Painel da empresa: todas as atividades dela, inclusive as que já passaram.
@@ -134,7 +134,7 @@ export async function listMyActivities(req: AuthRequest, res: Response): Promise
     include: includeCompany,
     orderBy: { createdAt: 'desc' },
   })
-  res.json(activities.map(toDTO))
+  res.json(activities.map(toActivityDTO))
 }
 
 export async function createActivity(req: AuthRequest, res: Response): Promise<void> {
@@ -155,7 +155,7 @@ export async function createActivity(req: AuthRequest, res: Response): Promise<v
     include: includeCompany,
   })
 
-  res.status(201).json(toDTO(activity))
+  res.status(201).json(toActivityDTO(activity))
 }
 
 export async function updateActivity(req: AuthRequest, res: Response): Promise<void> {
@@ -185,7 +185,7 @@ export async function updateActivity(req: AuthRequest, res: Response): Promise<v
     include: includeCompany,
   })
 
-  res.json(toDTO(updated))
+  res.json(toActivityDTO(updated))
 }
 
 export async function deleteActivity(req: AuthRequest, res: Response): Promise<void> {

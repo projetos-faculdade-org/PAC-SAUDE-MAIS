@@ -6,6 +6,7 @@ import { prisma } from './lib/prisma'
 import authRoutes from './routes/auth.routes'
 import activitiesRoutes from './routes/activities.routes'
 import adminRoutes from './routes/admin.routes'
+import announcementsRoutes from './routes/announcements.routes'
 
 const app = express()
 const PORT = process.env.PORT ?? 3000
@@ -20,6 +21,7 @@ app.get('/health', (_req, res) => {
 app.use('/auth', authRoutes)
 app.use('/activities', activitiesRoutes)
 app.use('/admin', adminRoutes)
+app.use('/announcements', announcementsRoutes)
 
 async function ensureAdmin() {
   const count = await prisma.admin.count()

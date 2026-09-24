@@ -2,17 +2,18 @@ import { useState, useEffect, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useActivities, type Activity, type ActivityInput } from '../../contexts/ActivitiesContext'
-import { api } from '../../lib/api'
+import { api, ApiError } from '../../lib/api'
 import {
   CATEGORIES,
   CATEGORY_LABEL,
   WEEKDAY_SHORT,
-  formatPhone,
   formatSchedule,
   isPast,
   type ActivityCategory,
   type ScheduleType,
 } from '../../lib/activity'
+import { formatPhone } from '../../lib/phone'
+import { LuCircleX, LuClipboardList, LuHourglass, LuMenu, LuPencil, LuTrash2, LuTriangleAlert, LuX } from 'react-icons/lu'
 import './Dashboard.css'
 
 type ActivityFormData = {
@@ -78,7 +79,7 @@ function PendingScreen({ onLogout }: { onLogout: () => void }) {
   return (
     <StatusLayout onLogout={onLogout}>
       <div className="dashboard-empty status-screen">
-        <span className="empty-icon">⏳</span>
+        <LuHourglass className="empty-icon" />
         <h3>Aguardando aprovação</h3>
         <p>Seu cadastro foi recebido e está sendo analisado pela equipe administrativa.<br />Você será notificado assim que sua conta for aprovada.</p>
       </div>
@@ -91,7 +92,7 @@ function RejectedScreen({ onLogout }: { onLogout: () => void }) {
   const [form, setForm] = useState({
     companyName: user?.name ?? '',
     responsible: user?.responsible ?? '',
-    phone: user?.phone ?? '',
+    phone: formatPhone(user?.phone),
   })
   const [error, setError] = useState('')
   const [sending, setSending] = useState(false)
@@ -120,7 +121,7 @@ function RejectedScreen({ onLogout }: { onLogout: () => void }) {
   return (
     <StatusLayout onLogout={onLogout}>
       <div className="dashboard-empty status-screen">
-        <span className="empty-icon">❌</span>
+        <LuCircleX className="empty-icon empty-icon-error" />
         <h3>Cadastro recusado</h3>
         <p>Seu cadastro não foi aprovado pela equipe administrativa. Corrija os dados abaixo e envie para uma nova análise.</p>
 
@@ -156,7 +157,7 @@ function RejectedScreen({ onLogout }: { onLogout: () => void }) {
               id="phone"
               type="tel"
               value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })}
             />
           </div>
 
@@ -186,10 +187,15 @@ export default function Dashboard() {
   const [deleting, setDeleting] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  // O admin pode ter aprovado/recusado desde o login — busca o status atual.
+  // O admin pode ter aprovado, recusado, desativado ou apagado a conta desde o login.
   useEffect(() => {
-    refreshUser().catch(() => {})
-  }, [refreshUser])
+    refreshUser().catch((err) => {
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        logout()
+        navigate('/login', { replace: true, state: { message: err.message } })
+      }
+    })
+  }, [refreshUser, logout, navigate])
 
   useEffect(() => {
     if (user?.status !== 'APPROVED') return
@@ -208,7 +214,7 @@ export default function Dashboard() {
 
   function openCreate() {
     setEditing(null)
-    setForm({ ...EMPTY_FORM, whatsapp: formatPhone(user?.phone?.replace(/\D/g, '')) })
+    setForm({ ...EMPTY_FORM, whatsapp: formatPhone(user?.phone) })
     setFormError('')
     setShowModal(true)
   }
@@ -376,7 +382,7 @@ export default function Dashboard() {
               aria-label="Abrir menu"
               onClick={() => setSidebarOpen(prev => !prev)}
             >
-              ☰
+              <LuMenu />
             </button>
             <div>
               <h1>Minhas Atividades</h1>
@@ -390,7 +396,7 @@ export default function Dashboard() {
 
         {myActivities.length === 0 ? (
           <div className="dashboard-empty">
-            <span className="empty-icon">📋</span>
+            <LuClipboardList className="empty-icon" />
             <h3>Nenhuma atividade cadastrada</h3>
             <p>Clique em "Nova atividade" para começar.</p>
           </div>
@@ -431,14 +437,14 @@ export default function Dashboard() {
                           onClick={() => openEdit(activity)}
                           title="Editar"
                         >
-                          ✏️ Editar
+                          <LuPencil /> Editar
                         </button>
                         <button
                           className="btn-delete"
                           onClick={() => setDeleteConfirm(activity.id)}
                           title="Excluir"
                         >
-                          🗑️ Excluir
+                          <LuTrash2 /> Excluir
                         </button>
                       </div>
                     </td>
@@ -456,8 +462,8 @@ export default function Dashboard() {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{editing ? 'Editar atividade' : 'Nova atividade'}</h2>
-              <button className="modal-close" onClick={closeModal}>
-                ×
+              <button className="modal-close" onClick={closeModal} aria-label="Fechar">
+                <LuX />
               </button>
             </div>
 
@@ -627,7 +633,7 @@ export default function Dashboard() {
                   type="tel"
                   placeholder="(47) 99999-9999"
                   value={form.whatsapp}
-                  onChange={handleFormChange}
+                  onChange={(e) => setForm({ ...form, whatsapp: formatPhone(e.target.value) })}
                   required
                 />
                 <small className="field-hint">O botão "Quero participar" abre uma conversa com este número.</small>
@@ -652,7 +658,7 @@ export default function Dashboard() {
       {deleteConfirm && (
         <div className="modal-overlay" onClick={() => !deleting && setDeleteConfirm(null)}>
           <div className="modal modal-confirm" onClick={(e) => e.stopPropagation()}>
-            <div className="confirm-icon">⚠️</div>
+            <div className="confirm-icon"><LuTriangleAlert /></div>
             <h2>Excluir atividade?</h2>
             <p>
               Esta ação não pode ser desfeita. A atividade será removida da plataforma.

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
-import { api, adminApi } from '../lib/api'
+import { api } from '../lib/api'
 
 export interface Company {
   id: string
@@ -10,6 +10,8 @@ export interface Company {
   status?: 'PENDING' | 'APPROVED' | 'REJECTED'
   rejectionReason?: string | null
 }
+
+export type Role = 'company' | 'admin'
 
 export interface ResubmitData {
   companyName: string
@@ -29,12 +31,12 @@ interface AuthContextData {
   user: Company | null
   isAdmin: boolean
   loading: boolean
-  login: (email: string, password: string) => Promise<void>
+  /** Login único de empresa e admin; devolve o papel para a tela decidir o painel. */
+  login: (email: string, password: string) => Promise<Role>
   register: (data: RegisterData) => Promise<void>
   refreshUser: () => Promise<void>
   resubmit: (data: ResubmitData) => Promise<void>
   logout: () => void
-  adminLogin: (email: string, password: string) => Promise<void>
   adminLogout: () => void
 }
 
@@ -99,9 +101,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false))
   }, [])
 
-  async function login(email: string, password: string) {
-    const { token, company } = await api.post('/auth/login', { email, password })
-    applySession(token, company)
+  const logout = useCallback(() => {
+    localStorage.removeItem(TOKEN_KEY)
+    sessionStorage.removeItem(USER_KEY)
+    setUser(null)
+  }, [])
+
+  const adminLogout = useCallback(() => {
+    localStorage.removeItem(ADMIN_TOKEN_KEY)
+    setIsAdmin(false)
+  }, [])
+
+  async function login(email: string, password: string): Promise<Role> {
+    const res: { role: Role; token: string; company?: Company } = await api.post('/auth/login', { email, password })
+
+    if (res.role === 'admin') {
+      logout()
+      localStorage.setItem(ADMIN_TOKEN_KEY, res.token)
+      setIsAdmin(true)
+    } else {
+      adminLogout()
+      applySession(res.token, res.company!)
+    }
+    return res.role
   }
 
   async function register(data: RegisterData) {
@@ -114,25 +136,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     storeUser(company)
   }
 
-  function logout() {
-    localStorage.removeItem(TOKEN_KEY)
-    sessionStorage.removeItem(USER_KEY)
-    setUser(null)
-  }
-
-  async function adminLogin(email: string, password: string) {
-    const { token } = await adminApi.post('/admin/login', { email, password })
-    localStorage.setItem(ADMIN_TOKEN_KEY, token)
-    setIsAdmin(true)
-  }
-
-  function adminLogout() {
-    localStorage.removeItem(ADMIN_TOKEN_KEY)
-    setIsAdmin(false)
-  }
-
   return (
-    <AuthContext.Provider value={{ user, isAdmin, loading, login, register, refreshUser, resubmit, logout, adminLogin, adminLogout }}>
+    <AuthContext.Provider value={{ user, isAdmin, loading, login, register, refreshUser, resubmit, logout, adminLogout }}>
       {children}
     </AuthContext.Provider>
   )

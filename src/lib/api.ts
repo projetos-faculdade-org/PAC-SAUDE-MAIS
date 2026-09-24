@@ -8,6 +8,15 @@ function getAdminToken() {
   return localStorage.getItem('@saude:admin-token')
 }
 
+export class ApiError extends Error {
+  status: number
+
+  constructor(message: string, status: number) {
+    super(message)
+    this.status = status
+  }
+}
+
 async function request(path: string, init: RequestInit = {}, tokenFn: () => string | null = getToken) {
   const token = tokenFn()
   const res = await fetch(`${BASE}${path}`, {
@@ -22,7 +31,7 @@ async function request(path: string, init: RequestInit = {}, tokenFn: () => stri
   if (res.status === 204) return null
 
   const body = await res.json()
-  if (!res.ok) throw new Error(body.error ?? `Erro ${res.status}`)
+  if (!res.ok) throw new ApiError(body.error ?? `Erro ${res.status}`, res.status)
   return body
 }
 

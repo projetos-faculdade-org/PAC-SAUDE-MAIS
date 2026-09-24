@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { prisma } from '../lib/prisma'
+import { ACCOUNT_DISABLED_MESSAGE } from '../middleware/auth.middleware'
 
 const companyPublicFields = {
   id: true,
@@ -27,7 +28,10 @@ export async function register(req: Request, res: Response): Promise<void> {
     return
   }
 
-  const existing = await prisma.company.findUnique({ where: { email } })
+  // O login é único, então o e-mail também não pode ser o de um admin.
+  const existing =
+    (await prisma.company.findUnique({ where: { email } })) ??
+    (await prisma.admin.findUnique({ where: { email } }))
   if (existing) {
     res.status(409).json({ error: 'E-mail já cadastrado' })
     return
@@ -47,6 +51,7 @@ export async function register(req: Request, res: Response): Promise<void> {
   res.status(201).json({ token, company })
 }
 
+// Login único: tenta empresa e depois admin. O front usa `role` para decidir qual painel abrir.
 export async function login(req: Request, res: Response): Promise<void> {
   const { email, password } = req.body
 
@@ -56,34 +61,43 @@ export async function login(req: Request, res: Response): Promise<void> {
   }
 
   const company = await prisma.company.findUnique({ where: { email } })
+  if (company && (await bcrypt.compare(password, company.passwordHash))) {
+    if (!company.active) {
+      res.status(403).json({ error: ACCOUNT_DISABLED_MESSAGE })
+      return
+    }
 
-  if (!company) {
-    res.status(401).json({ error: 'Credenciais inválidas' })
+    const token = jwt.sign({ companyId: company.id }, process.env.JWT_SECRET!, {
+      expiresIn: '7d',
+    })
+
+    res.json({
+      role: 'company',
+      token,
+      company: {
+        id: company.id,
+        name: company.name,
+        email: company.email,
+        responsible: company.responsible,
+        phone: company.phone,
+        status: company.status,
+        rejectionReason: company.rejectionReason,
+      },
+    })
     return
   }
 
-  const valid = await bcrypt.compare(password, company.passwordHash)
-  if (!valid) {
-    res.status(401).json({ error: 'Credenciais inválidas' })
+  const admin = await prisma.admin.findUnique({ where: { email } })
+  if (admin && (await bcrypt.compare(password, admin.passwordHash))) {
+    const token = jwt.sign({ adminId: admin.id, role: 'admin' }, process.env.JWT_SECRET!, {
+      expiresIn: '7d',
+    })
+
+    res.json({ role: 'admin', token, admin: { id: admin.id, email: admin.email } })
     return
   }
 
-  const token = jwt.sign({ companyId: company.id }, process.env.JWT_SECRET!, {
-    expiresIn: '7d',
-  })
-
-  res.json({
-    token,
-    company: {
-      id: company.id,
-      name: company.name,
-      email: company.email,
-      responsible: company.responsible,
-      phone: company.phone,
-      status: company.status,
-      rejectionReason: company.rejectionReason,
-    },
-  })
+  res.status(401).json({ error: 'Credenciais inválidas' })
 }
 
 export async function me(req: Request & { companyId?: string }, res: Response): Promise<void> {

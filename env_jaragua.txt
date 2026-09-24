@@ -1,0 +1,24 @@
+ENV DA RAIZ
+
+POSTGRES_USER=saude
+POSTGRES_PASSWORD=saude123
+POSTGRES_DB=saudemais
+
+JWT_SECRET=98291ef2fc1f60ef861bf9abfa501a2617312f78851ebc6a4428f3a78b66c6c1
+
+CORS_ORIGIN=http://localhost
+
+ADMIN_EMAIL=admin@jaraguamaissaudavel.com
+ADMIN_PASSWORD=admin123!
+
+
+ENV DO BACKEND
+
+DATABASE_URL="postgresql://saude:saude123@localhost:5432/saudemais"
+JWT_SECRET="98291ef2fc1f60ef861bf9abfa501a2617312f78851ebc6a4428f3a78b66c6c1"
+PORT=3000
+CORS_ORIGIN="http://localhost:5173"
+NODE_ENV="development"
+
+ADMIN_EMAIL=admin@jaraguamaissaudavel.com
+ADMIN_PASSWORD=admin123!
