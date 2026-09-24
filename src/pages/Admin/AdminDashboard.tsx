@@ -14,6 +14,7 @@ interface CompanyItem {
   responsible: string
   phone?: string
   status: CompanyStatus
+  rejectionReason: string | null
   createdAt: string
 }
 
@@ -34,6 +35,9 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [rejecting, setRejecting] = useState<CompanyItem | null>(null)
+  const [reason, setReason] = useState('')
+  const [rejectError, setRejectError] = useState('')
 
   const fetchCompanies = useCallback(async () => {
     setLoading(true)
@@ -60,17 +64,39 @@ export default function AdminDashboard() {
     setActionLoading(id + '-approve')
     try {
       const updated = await adminApi.put(`/admin/companies/${id}/approve`, {})
-      setCompanies(prev => prev.map(c => c.id === id ? { ...c, status: updated.status } : c))
+      setCompanies(prev => prev.map(c => c.id === id ? { ...c, status: updated.status, rejectionReason: updated.rejectionReason } : c))
     } finally {
       setActionLoading(null)
     }
   }
 
-  async function handleReject(id: string) {
+  function openReject(company: CompanyItem) {
+    setRejecting(company)
+    setReason('')
+    setRejectError('')
+  }
+
+  function closeReject() {
+    if (actionLoading) return
+    setRejecting(null)
+  }
+
+  async function handleReject(e: { preventDefault(): void }) {
+    e.preventDefault()
+    if (!rejecting) return
+    if (!reason.trim()) {
+      setRejectError('Informe o motivo para a empresa saber o que corrigir.')
+      return
+    }
+
+    const id = rejecting.id
     setActionLoading(id + '-reject')
     try {
-      const updated = await adminApi.put(`/admin/companies/${id}/reject`, {})
-      setCompanies(prev => prev.map(c => c.id === id ? { ...c, status: updated.status } : c))
+      const updated = await adminApi.put(`/admin/companies/${id}/reject`, { reason: reason.trim() })
+      setCompanies(prev => prev.map(c => c.id === id ? { ...c, status: updated.status, rejectionReason: updated.rejectionReason } : c))
+      setRejecting(null)
+    } catch (err) {
+      setRejectError(err instanceof Error ? err.message : 'Erro ao recusar empresa.')
     } finally {
       setActionLoading(null)
     }
@@ -181,6 +207,14 @@ export default function AdminDashboard() {
                       <span className={`status-badge status-${company.status.toLowerCase()}`}>
                         {STATUS_LABEL[company.status]}
                       </span>
+                      {company.status === 'PENDING' && company.rejectionReason && (
+                        <div className="status-note">Reenviado após recusa</div>
+                      )}
+                      {company.rejectionReason && (
+                        <div className="status-note" title={company.rejectionReason}>
+                          Motivo: {company.rejectionReason}
+                        </div>
+                      )}
                     </td>
                     <td>
                       {company.status === 'PENDING' && (
@@ -194,7 +228,7 @@ export default function AdminDashboard() {
                           </button>
                           <button
                             className="btn-reject"
-                            onClick={() => handleReject(company.id)}
+                            onClick={() => openReject(company)}
                             disabled={actionLoading !== null}
                           >
                             {actionLoading === company.id + '-reject' ? '...' : '✗ Recusar'}
@@ -204,7 +238,7 @@ export default function AdminDashboard() {
                       {company.status === 'APPROVED' && (
                         <button
                           className="btn-reject"
-                          onClick={() => handleReject(company.id)}
+                          onClick={() => openReject(company)}
                           disabled={actionLoading !== null}
                         >
                           {actionLoading === company.id + '-reject' ? '...' : '✗ Recusar'}
@@ -227,6 +261,42 @@ export default function AdminDashboard() {
           </div>
         )}
       </main>
+
+      {rejecting && (
+        <div className="modal-overlay" onClick={closeReject}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Recusar {rejecting.name}</h2>
+              <button className="modal-close" onClick={closeReject}>×</button>
+            </div>
+            <form onSubmit={handleReject} className="modal-form">
+              <div className="form-group">
+                <label htmlFor="reason">Motivo da recusa *</label>
+                <textarea
+                  id="reason"
+                  rows={4}
+                  placeholder="Ex.: Não conseguimos confirmar o CNPJ informado. Atualize o nome da empresa conforme o registro."
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  autoFocus
+                />
+                <small className="field-hint">A empresa verá esta mensagem no painel e poderá reenviar o cadastro.</small>
+              </div>
+
+              {rejectError && <p className="auth-error">{rejectError}</p>}
+
+              <div className="modal-actions">
+                <button type="button" className="btn-cancel" onClick={closeReject} disabled={actionLoading !== null}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn-delete-confirm" disabled={actionLoading !== null}>
+                  {actionLoading ? 'Recusando...' : 'Recusar empresa'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

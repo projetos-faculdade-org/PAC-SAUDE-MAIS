@@ -14,17 +14,37 @@ enum CompanyStatus {
   REJECTED
 }
 
+enum ScheduleType {
+  ONCE // data específica
+  WEEKLY // dias da semana fixos (todos os dias = os 7 marcados)
+  FLEXIBLE // texto livre, ex.: "horário livre, das 6h às 22h"
+}
+
+enum ActivityCategory {
+  CAMINHADA_CORRIDA
+  ESPORTES
+  DANCA
+  YOGA_PILATES
+  LUTAS
+  NATACAO
+  NUTRICAO
+  SAUDE_MENTAL
+  PREVENCAO
+  OUTRO
+}
+
 model Company {
-  id           String        @id @default(uuid())
-  name         String
-  email        String        @unique
-  responsible  String
-  phone        String?
-  passwordHash String
-  status       CompanyStatus @default(PENDING)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  activities   Activity[]
+  id              String        @id @default(uuid())
+  name            String
+  email           String        @unique
+  responsible     String
+  phone           String?
+  passwordHash    String
+  status          CompanyStatus @default(PENDING)
+  rejectionReason String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  activities      Activity[]
 
   @@map("companies")
 }
@@ -39,15 +59,25 @@ model Admin {
 }
 
 model Activity {
-  id          String   @id @default(uuid())
-  name        String
-  description String
-  schedule    String
-  location    String?
-  companyId   String
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String           @id @default(uuid())
+  name         String
+  description  String
+  category     ActivityCategory @default(OUTRO)
+  scheduleType ScheduleType     @default(FLEXIBLE)
+  date         DateTime?        @db.Date // ONCE
+  weekdays     Int[]            @default([]) // WEEKLY: 0 = domingo … 6 = sábado
+  startTime    String? // "HH:MM" (ONCE / WEEKLY)
+  endTime      String? // "HH:MM" (ONCE / WEEKLY)
+  schedule     String? // FLEXIBLE: obrigatório; demais: observação opcional
+  location     String?
+  neighborhood String?
+  isFree       Boolean          @default(true)
+  price        String?
+  whatsapp     String? // só dígitos, com DDI (ex.: 5547999999999)
+  companyId    String
+  company      Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 
   @@map("activities")
 }

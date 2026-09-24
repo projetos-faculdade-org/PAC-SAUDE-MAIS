@@ -48,6 +48,7 @@ export async function listCompanies(_req: AuthRequest, res: Response): Promise<v
       responsible: true,
       phone: true,
       status: true,
+      rejectionReason: true,
       createdAt: true,
     },
     orderBy: { createdAt: 'desc' },
@@ -67,8 +68,8 @@ export async function approveCompany(req: AuthRequest, res: Response): Promise<v
 
   const updated = await prisma.company.update({
     where: { id },
-    data: { status: 'APPROVED' },
-    select: { id: true, name: true, email: true, status: true },
+    data: { status: 'APPROVED', rejectionReason: null },
+    select: { id: true, name: true, email: true, status: true, rejectionReason: true },
   })
 
   res.json(updated)
@@ -76,6 +77,12 @@ export async function approveCompany(req: AuthRequest, res: Response): Promise<v
 
 export async function rejectCompany(req: AuthRequest, res: Response): Promise<void> {
   const id = req.params.id as string
+  const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim() : ''
+
+  if (!reason) {
+    res.status(400).json({ error: 'Informe o motivo da recusa' })
+    return
+  }
 
   const company = await prisma.company.findUnique({ where: { id } })
   if (!company) {
@@ -85,8 +92,8 @@ export async function rejectCompany(req: AuthRequest, res: Response): Promise<vo
 
   const updated = await prisma.company.update({
     where: { id },
-    data: { status: 'REJECTED' },
-    select: { id: true, name: true, email: true, status: true },
+    data: { status: 'REJECTED', rejectionReason: reason },
+    select: { id: true, name: true, email: true, status: true, rejectionReason: true },
   })
 
   res.json(updated)

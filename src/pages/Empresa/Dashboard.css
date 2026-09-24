@@ -572,3 +572,190 @@
     text-align: center;
   }
 }
+
+/* ─── Formulário de atividade ─── */
+.modal-form .form-group select {
+  padding: 12px 14px;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  font-size: 15px;
+  font-family: 'Montserrat', sans-serif;
+  color: #000;
+  background: #fff;
+  outline: none;
+}
+
+.modal-form .form-group select:focus {
+  border-color: #2e7d32;
+}
+
+.form-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+  gap: 10px !important;
+}
+
+.form-fieldset legend {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-row > label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+}
+
+.segmented {
+  display: flex;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.segmented button {
+  flex: 1;
+  padding: 10px 8px;
+  background: #fff;
+  border: none;
+  border-right: 1.5px solid #ddd;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  color: #555;
+  cursor: pointer;
+}
+
+.segmented button:last-child {
+  border-right: none;
+}
+
+.segmented button.active {
+  background: #2e7d32;
+  color: #fff;
+}
+
+.weekday-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.weekday-picker button {
+  min-width: 46px;
+  padding: 8px 10px;
+  border: 1.5px solid #ddd;
+  border-radius: 20px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  color: #555;
+  cursor: pointer;
+}
+
+.weekday-picker button.active {
+  background: #e8f5e9;
+  border-color: #2e7d32;
+  color: #2e7d32;
+}
+
+.weekday-picker .weekday-all {
+  border-style: dashed;
+}
+
+.checkbox-label {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.checkbox-label input {
+  width: 18px;
+  height: 18px;
+  accent-color: #2e7d32;
+}
+
+.field-hint {
+  font-size: 12px;
+  color: #777;
+}
+
+/* ─── Tabela ─── */
+.td-price,
+.td-neighborhood {
+  font-size: 12px;
+  color: #777;
+  margin-top: 4px;
+}
+
+.td-nowrap {
+  white-space: nowrap;
+}
+
+.past-tag {
+  display: inline-block;
+  margin-top: 6px;
+  background-color: #eee;
+  color: #666;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.row-past td {
+  opacity: 0.6;
+}
+
+/* ─── Cadastro recusado ─── */
+.rejection-reason {
+  max-width: 440px;
+  width: 100%;
+  margin: 24px 0 8px;
+  padding: 16px 18px;
+  background: #fce4e4;
+  border-left: 4px solid #c62828;
+  border-radius: 6px;
+  text-align: left;
+}
+
+.rejection-reason strong {
+  display: block;
+  font-size: 13px;
+  color: #c62828;
+  margin-bottom: 4px;
+}
+
+.status-screen .rejection-reason p {
+  text-align: left;
+  color: #333;
+  font-size: 15px;
+}
+
+.resubmit-form {
+  max-width: 440px;
+  width: 100%;
+  padding: 16px 0 0;
+  text-align: left;
+}
+
+@media (max-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}

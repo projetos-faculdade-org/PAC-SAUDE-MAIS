@@ -1,22 +1,15 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 import { api } from '../lib/api'
+import type { Activity, ActivityInput } from '../lib/activity'
 
-export interface Activity {
-  id: string
-  name: string
-  description: string
-  schedule: string
-  location?: string
-  companyId: string
-  companyName: string
-}
+export type { Activity, ActivityInput } from '../lib/activity'
 
 interface ActivitiesContextData {
   activities: Activity[]
   loading: boolean
   error: string | null
-  addActivity: (data: Omit<Activity, 'id' | 'companyId' | 'companyName'>) => Promise<Activity>
-  editActivity: (id: string, data: Omit<Activity, 'id' | 'companyId' | 'companyName'>) => Promise<void>
+  addActivity: (data: ActivityInput) => Promise<Activity>
+  editActivity: (id: string, data: ActivityInput) => Promise<Activity>
   deleteActivity: (id: string) => Promise<void>
 }
 
@@ -29,22 +22,30 @@ export function ActivitiesProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    api.get('/activities')
-      .then((data: Activity[]) => setActivities(data))
+  // Lista pública: o backend já filtra empresas não aprovadas e datas que passaram.
+  const reload = useCallback(() => {
+    return api.get('/activities')
+      .then((data: Activity[]) => {
+        setActivities(data)
+        setError(null)
+      })
       .catch(() => setError('Não foi possível carregar as atividades.'))
-      .finally(() => setLoading(false))
   }, [])
 
-  async function addActivity(data: Omit<Activity, 'id' | 'companyId' | 'companyName'>): Promise<Activity> {
+  useEffect(() => {
+    reload().finally(() => setLoading(false))
+  }, [reload])
+
+  async function addActivity(data: ActivityInput): Promise<Activity> {
     const created: Activity = await api.post('/activities', data)
-    setActivities((prev) => [created, ...prev])
+    reload()
     return created
   }
 
-  async function editActivity(id: string, data: Omit<Activity, 'id' | 'companyId' | 'companyName'>) {
+  async function editActivity(id: string, data: ActivityInput): Promise<Activity> {
     const updated: Activity = await api.put(`/activities/${id}`, data)
-    setActivities((prev) => prev.map((a) => (a.id === id ? updated : a)))
+    reload()
+    return updated
   }
 
   async function deleteActivity(id: string) {
