@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { ActivitiesProvider } from './contexts/ActivitiesContext'
 import PrivateRoute from './components/PrivateRoute'
@@ -7,10 +7,10 @@ import Navbar from './components/Navbar/Navbar'
 import Footer from './components/Footer/Footer'
 import Home from './pages/Home/Home'
 import Atividades from './pages/Atividades/Atividades'
+import Noticias from './pages/Noticias/Noticias'
 import Login from './pages/Login/Login'
 import Cadastro from './pages/Cadastro/Cadastro'
 import Dashboard from './pages/Empresa/Dashboard'
-import AdminLogin from './pages/Admin/AdminLogin'
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import './App.css'
 
@@ -58,6 +58,14 @@ function App() {
               }
             />
             <Route
+              path="/noticias"
+              element={
+                <AppLayout>
+                  <Noticias />
+                </AppLayout>
+              }
+            />
+            <Route
               path="/login"
               element={
                 <AppLayout>
@@ -75,7 +83,8 @@ function App() {
             />
 
             {/* Rotas admin (sem navbar/footer) */}
-            <Route path="/admin/login" element={<AdminLogin />} />
+            {/* Login do admin agora é o mesmo de /login */}
+            <Route path="/admin/login" element={<Navigate to="/login" replace />} />
             <Route
               path="/admin/dashboard"
               element={

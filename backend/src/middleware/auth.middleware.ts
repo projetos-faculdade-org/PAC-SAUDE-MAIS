@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
+import { prisma } from '../lib/prisma'
+
+export const ACCOUNT_DISABLED_MESSAGE = 'Conta desativada. Entre em contato com a organização.'
 
 export interface AuthRequest extends Request {
   companyId?: string
@@ -15,11 +18,11 @@ interface AdminJwtPayload {
   role: 'admin'
 }
 
-export function authMiddleware(
+export async function authMiddleware(
   req: AuthRequest,
   res: Response,
   next: NextFunction
-): void {
+): Promise<void> {
   const authHeader = req.headers.authorization
 
   if (!authHeader?.startsWith('Bearer ')) {
@@ -29,13 +32,40 @@ export function authMiddleware(
 
   const token = authHeader.slice(7)
 
+  let payload: CompanyJwtPayload
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as CompanyJwtPayload
-    req.companyId = payload.companyId
-    next()
+    payload = jwt.verify(token, process.env.JWT_SECRET!) as CompanyJwtPayload
   } catch {
     res.status(401).json({ error: 'Token inválido ou expirado' })
+    return
   }
+
+  if (!payload.companyId) {
+    res.status(401).json({ error: 'Token inválido ou expirado' })
+    return
+  }
+
+  // Confere a cada requisição: o admin pode ter desativado ou apagado a empresa depois do login.
+  try {
+    const company = await prisma.company.findUnique({
+      where: { id: payload.companyId },
+      select: { active: true },
+    })
+    if (!company) {
+      res.status(401).json({ error: 'Conta não encontrada' })
+      return
+    }
+    if (!company.active) {
+      res.status(403).json({ error: ACCOUNT_DISABLED_MESSAGE })
+      return
+    }
+  } catch (err) {
+    next(err)
+    return
+  }
+
+  req.companyId = payload.companyId
+  next()
 }
 
 export function adminMiddleware(

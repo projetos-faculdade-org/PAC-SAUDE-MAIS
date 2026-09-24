@@ -1,15 +1,17 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import './Login.css'
 
 export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  // Ex.: "Conta desativada" quando o painel desloga a empresa.
+  const [error, setError] = useState<string>((location.state as { message?: string } | null)?.message ?? '')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: { preventDefault(): void }) {
@@ -18,8 +20,8 @@ export default function Login() {
     setLoading(true)
 
     try {
-      await login(email, password)
-      navigate('/empresa/dashboard')
+      const role = await login(email, password)
+      navigate(role === 'admin' ? '/admin/dashboard' : '/empresa/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'E-mail ou senha incorretos.')
     } finally {
@@ -34,8 +36,8 @@ export default function Login() {
           <img src="/jaraguasaudavel.png" alt="Saúde Mais" />
         </div>
 
-        <h1>Acesso Empresa</h1>
-        <p className="auth-subtitle">Entre com as credenciais da sua empresa.</p>
+        <h1>Entrar</h1>
+        <p className="auth-subtitle">Acesse o painel da sua empresa.</p>
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">

@@ -1,20 +1,35 @@
 import { useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useActivities } from '../../contexts/ActivitiesContext'
 import {
   CATEGORIES,
   CATEGORY_LABEL,
-  formatSchedule,
   nextOccurrence,
-  whatsappLink,
+  sortByNextOccurrence,
   type Activity,
   type ActivityCategory,
 } from '../../lib/activity'
+import { LuHourglass, LuSearchX, LuTriangleAlert } from 'react-icons/lu'
+import ActivityCard from '../../components/ActivityCard/ActivityCard'
 import './Atividades.css'
 
 type WhenFilter = 'ALL' | 'TODAY' | 'WEEK'
 type PriceFilter = 'ALL' | 'FREE' | 'PAID'
 
 const DAY_MS = 24 * 60 * 60 * 1000
+
+// Minúsculo e sem acento, para "danca" achar "Dança".
+function normalize(text: string) {
+  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+}
+
+function searchableText(act: Activity) {
+  return normalize(
+    [act.name, act.companyName, act.description, CATEGORY_LABEL[act.category], act.location, act.neighborhood]
+      .filter(Boolean)
+      .join(' ')
+  )
+}
 
 function matchesWhen(activity: Activity, when: WhenFilter, today: Date) {
   if (when === 'ALL') return true
@@ -27,7 +42,11 @@ function matchesWhen(activity: Activity, when: WhenFilter, today: Date) {
 export default function Atividades() {
   const { activities, loading, error } = useActivities()
   const [search, setSearch] = useState('')
-  const [category, setCategory] = useState<ActivityCategory | 'ALL'>('ALL')
+  const [searchParams] = useSearchParams()
+  const initialCategory = searchParams.get('categoria') as ActivityCategory | null
+  const [category, setCategory] = useState<ActivityCategory | 'ALL'>(
+    initialCategory && CATEGORIES.includes(initialCategory) ? initialCategory : 'ALL'
+  )
   const [neighborhood, setNeighborhood] = useState('ALL')
   const [price, setPrice] = useState<PriceFilter>('ALL')
   const [when, setWhen] = useState<WhenFilter>('ALL')
@@ -39,23 +58,20 @@ export default function Atividades() {
 
   const filtered = useMemo(() => {
     const today = new Date()
-    const term = search.toLowerCase()
+    const terms = normalize(search).split(/\s+/).filter(Boolean)
 
-    return activities
-      .filter(
-        (act) =>
-          act.name.toLowerCase().includes(term) ||
-          act.companyName.toLowerCase().includes(term) ||
-          act.description.toLowerCase().includes(term)
-      )
+    const matches = activities
+      // Todas as palavras precisam aparecer em algum campo (nome, empresa, categoria, local...).
+      .filter((act) => {
+        const text = searchableText(act)
+        return terms.every((t) => text.includes(t))
+      })
       .filter((act) => category === 'ALL' || act.category === category)
       .filter((act) => neighborhood === 'ALL' || act.neighborhood === neighborhood)
       .filter((act) => price === 'ALL' || (price === 'FREE') === act.isFree)
       .filter((act) => matchesWhen(act, when, today))
-      // Mais próximas primeiro; horários em texto livre vão para o fim.
-      .map((act) => ({ act, next: nextOccurrence(act, today)?.getTime() ?? Infinity }))
-      .sort((a, b) => a.next - b.next)
-      .map(({ act }) => act)
+
+    return sortByNextOccurrence(matches, today)
   }, [activities, search, category, neighborhood, price, when])
 
   const hasFilters = search || category !== 'ALL' || neighborhood !== 'ALL' || price !== 'ALL' || when !== 'ALL'
@@ -77,7 +93,7 @@ export default function Atividades() {
         <div className="search-bar">
           <input
             type="text"
-            placeholder="Buscar por nome, empresa ou descrição..."
+            placeholder="Buscar por atividade, categoria, empresa ou bairro..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -127,67 +143,26 @@ export default function Atividades() {
 
       {loading ? (
         <div className="empty-state">
-          <span className="empty-icon">⏳</span>
+          <LuHourglass className="empty-icon" />
           <h3>Carregando atividades...</h3>
         </div>
       ) : error ? (
         <div className="empty-state">
-          <span className="empty-icon">⚠️</span>
+          <LuTriangleAlert className="empty-icon empty-icon-error" />
           <h3>Não foi possível carregar as atividades</h3>
           <p>Tente novamente em alguns instantes.</p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="empty-state">
-          <span className="empty-icon">🔍</span>
+          <LuSearchX className="empty-icon" />
           <h3>Nenhuma atividade encontrada</h3>
           <p>Tente buscar por outro termo ou limpe os filtros.</p>
         </div>
       ) : (
         <div className="activities-grid">
-          {filtered.map((activity) => {
-            const link = whatsappLink(activity)
-            return (
-              <div key={activity.id} className="activity-card">
-                <div className="activity-card-header">
-                  <h2>{activity.name}</h2>
-                  <span className="company-badge">{activity.companyName}</span>
-                </div>
-
-                <div className="activity-tags">
-                  <span className="category-tag">{CATEGORY_LABEL[activity.category]}</span>
-                  <span className={`price-tag${activity.isFree ? ' free' : ''}`}>
-                    {activity.isFree ? 'Gratuita' : activity.price}
-                  </span>
-                </div>
-
-                <p className="activity-description">{activity.description}</p>
-
-                <div className="activity-info">
-                  <div className="info-item">
-                    <span className="info-icon">🕐</span>
-                    <span>
-                      {formatSchedule(activity)}
-                      {activity.scheduleType !== 'FLEXIBLE' && activity.schedule && (
-                        <small className="info-note">{activity.schedule}</small>
-                      )}
-                    </span>
-                  </div>
-                  {(activity.location || activity.neighborhood) && (
-                    <div className="info-item">
-                      <span className="info-icon">📍</span>
-                      <span>{[activity.location, activity.neighborhood].filter(Boolean).join(' — ')}</span>
-                    </div>
-                  )}
-                </div>
-
-                {link && (
-                  <a className="btn-participate" href={link} target="_blank" rel="noopener noreferrer">
-                    Quero participar
-                  </a>
-                )}
-              </div>
-            )
-          })}
+          {filtered.map((activity) => (
+            <ActivityCard key={activity.id} activity={activity} />
+          ))}
         </div>
       )}
     </main>

@@ -1,0 +1,134 @@
+.activity-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 28px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e8e8e8;
+  transition: box-shadow 0.2s, transform 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.activity-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.activity-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.activity-card-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #000;
+  line-height: 1.3;
+}
+
+.company-badge {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.activity-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.category-tag,
+.price-tag {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: #f0f0f0;
+  color: #444;
+}
+
+.price-tag.free {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.info-note {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  color: #777;
+  margin-top: 2px;
+}
+
+.btn-participate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background-color: #2e7d32;
+  color: #fff;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.btn-participate:hover {
+  background-color: #1da851;
+}
+
+.activity-description {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.7;
+  flex: 1;
+}
+
+.activity-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 16px;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.info-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  color: #2e7d32;
+}
+
+
+/* Variante compacta (landing page): descrição limitada a 3 linhas */
+.activity-card.compact .activity-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (max-width: 480px) {
+  .activity-card {
+    padding: 20px;
+  }
+}

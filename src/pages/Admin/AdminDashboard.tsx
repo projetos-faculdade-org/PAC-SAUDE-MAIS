@@ -1,115 +1,41 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, type ReactNode } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { LuBuilding2, LuClipboardList, LuMegaphone } from 'react-icons/lu'
 import { useAuth } from '../../contexts/AuthContext'
-import { adminApi } from '../../lib/api'
+import AdminCompanies from './AdminCompanies'
+import AdminActivities from './AdminActivities'
+import AdminNews from './AdminNews'
 import '../Empresa/Dashboard.css'
 import './AdminDashboard.css'
 
-type CompanyStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+type Section = 'empresas' | 'atividades' | 'noticias'
 
-interface CompanyItem {
-  id: string
-  name: string
-  email: string
-  responsible: string
-  phone?: string
-  status: CompanyStatus
-  rejectionReason: string | null
-  createdAt: string
-}
-
-type FilterStatus = 'ALL' | CompanyStatus
-
-const STATUS_LABEL: Record<CompanyStatus, string> = {
-  PENDING: 'Pendente',
-  APPROVED: 'Aprovada',
-  REJECTED: 'Recusada',
-}
+const SECTIONS: { key: Section; label: string; icon: ReactNode }[] = [
+  { key: 'empresas', label: 'Empresas', icon: <LuBuilding2 /> },
+  { key: 'atividades', label: 'Atividades', icon: <LuClipboardList /> },
+  { key: 'noticias', label: 'Notícias', icon: <LuMegaphone /> },
+]
 
 export default function AdminDashboard() {
   const { adminLogout } = useAuth()
   const navigate = useNavigate()
-
-  const [companies, setCompanies] = useState<CompanyItem[]>([])
-  const [filter, setFilter] = useState<FilterStatus>('ALL')
-  const [loading, setLoading] = useState(true)
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [searchParams, setSearchParams] = useSearchParams()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [rejecting, setRejecting] = useState<CompanyItem | null>(null)
-  const [reason, setReason] = useState('')
-  const [rejectError, setRejectError] = useState('')
 
-  const fetchCompanies = useCallback(async () => {
-    setLoading(true)
-    try {
-      const data = await adminApi.get('/admin/companies')
-      setCompanies(data)
-    } catch {
-      // mantém lista vazia
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  const param = searchParams.get('secao') as Section | null
+  const section: Section = SECTIONS.some((s) => s.key === param) ? param! : 'empresas'
 
-  useEffect(() => {
-    fetchCompanies()
-  }, [fetchCompanies])
+  function goTo(key: Section) {
+    setSearchParams({ secao: key })
+    setSidebarOpen(false)
+  }
 
   function handleLogout() {
     adminLogout()
-    navigate('/admin/login')
+    navigate('/login')
   }
 
-  async function handleApprove(id: string) {
-    setActionLoading(id + '-approve')
-    try {
-      const updated = await adminApi.put(`/admin/companies/${id}/approve`, {})
-      setCompanies(prev => prev.map(c => c.id === id ? { ...c, status: updated.status, rejectionReason: updated.rejectionReason } : c))
-    } finally {
-      setActionLoading(null)
-    }
-  }
-
-  function openReject(company: CompanyItem) {
-    setRejecting(company)
-    setReason('')
-    setRejectError('')
-  }
-
-  function closeReject() {
-    if (actionLoading) return
-    setRejecting(null)
-  }
-
-  async function handleReject(e: { preventDefault(): void }) {
-    e.preventDefault()
-    if (!rejecting) return
-    if (!reason.trim()) {
-      setRejectError('Informe o motivo para a empresa saber o que corrigir.')
-      return
-    }
-
-    const id = rejecting.id
-    setActionLoading(id + '-reject')
-    try {
-      const updated = await adminApi.put(`/admin/companies/${id}/reject`, { reason: reason.trim() })
-      setCompanies(prev => prev.map(c => c.id === id ? { ...c, status: updated.status, rejectionReason: updated.rejectionReason } : c))
-      setRejecting(null)
-    } catch (err) {
-      setRejectError(err instanceof Error ? err.message : 'Erro ao recusar empresa.')
-    } finally {
-      setActionLoading(null)
-    }
-  }
-
-  const filtered = filter === 'ALL' ? companies : companies.filter(c => c.status === filter)
-
-  const counts = {
-    ALL: companies.length,
-    PENDING: companies.filter(c => c.status === 'PENDING').length,
-    APPROVED: companies.filter(c => c.status === 'APPROVED').length,
-    REJECTED: companies.filter(c => c.status === 'REJECTED').length,
-  }
+  const toggleSidebar = () => setSidebarOpen((prev) => !prev)
 
   return (
     <div className="dashboard-page">
@@ -124,7 +50,16 @@ export default function AdminDashboard() {
           </a>
         </div>
         <nav className="sidebar-nav">
-          <span className="sidebar-nav-item active">Empresas Cadastradas</span>
+          {SECTIONS.map((s) => (
+            <button
+              key={s.key}
+              type="button"
+              className={`sidebar-nav-item${section === s.key ? ' active' : ''}`}
+              onClick={() => goTo(s.key)}
+            >
+              {s.icon} {s.label}
+            </button>
+          ))}
           <a className="sidebar-nav-item" href="/" onClick={() => setSidebarOpen(false)}>Voltar para Home</a>
         </nav>
         <div className="sidebar-footer">
@@ -142,161 +77,10 @@ export default function AdminDashboard() {
       </aside>
 
       <main className="dashboard-main">
-        <div className="dashboard-topbar">
-          <div className="topbar-left">
-            <button
-              className="sidebar-toggle"
-              aria-label="Abrir menu"
-              onClick={() => setSidebarOpen(prev => !prev)}
-            >
-              ☰
-            </button>
-            <div>
-              <h1>Empresas Cadastradas</h1>
-              <p>Aprove ou recuse empresas que se cadastraram na plataforma.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Filtros */}
-        <div className="admin-filters">
-          {(['ALL', 'PENDING', 'APPROVED', 'REJECTED'] as FilterStatus[]).map(s => (
-            <button
-              key={s}
-              className={`filter-btn${filter === s ? ' active' : ''}${s !== 'ALL' ? ` filter-${s.toLowerCase()}` : ''}`}
-              onClick={() => setFilter(s)}
-            >
-              {s === 'ALL' ? 'Todas' : STATUS_LABEL[s as CompanyStatus]}
-              <span className="filter-count">{counts[s]}</span>
-            </button>
-          ))}
-        </div>
-
-        {loading ? (
-          <div className="dashboard-empty">
-            <span className="empty-icon">⏳</span>
-            <h3>Carregando empresas...</h3>
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="dashboard-empty">
-            <span className="empty-icon">🏢</span>
-            <h3>Nenhuma empresa encontrada</h3>
-            <p>Não há empresas com o filtro selecionado.</p>
-          </div>
-        ) : (
-          <div className="activities-table-wrapper">
-            <table className="activities-table">
-              <thead>
-                <tr>
-                  <th>Empresa</th>
-                  <th>Responsável</th>
-                  <th>E-mail</th>
-                  <th>Cadastro</th>
-                  <th>Status</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(company => (
-                  <tr key={company.id}>
-                    <td><strong>{company.name}</strong></td>
-                    <td>{company.responsible}</td>
-                    <td>{company.email}</td>
-                    <td>{new Date(company.createdAt).toLocaleDateString('pt-BR')}</td>
-                    <td>
-                      <span className={`status-badge status-${company.status.toLowerCase()}`}>
-                        {STATUS_LABEL[company.status]}
-                      </span>
-                      {company.status === 'PENDING' && company.rejectionReason && (
-                        <div className="status-note">Reenviado após recusa</div>
-                      )}
-                      {company.rejectionReason && (
-                        <div className="status-note" title={company.rejectionReason}>
-                          Motivo: {company.rejectionReason}
-                        </div>
-                      )}
-                    </td>
-                    <td>
-                      {company.status === 'PENDING' && (
-                        <div className="action-buttons">
-                          <button
-                            className="btn-approve"
-                            onClick={() => handleApprove(company.id)}
-                            disabled={actionLoading !== null}
-                          >
-                            {actionLoading === company.id + '-approve' ? '...' : '✓ Aprovar'}
-                          </button>
-                          <button
-                            className="btn-reject"
-                            onClick={() => openReject(company)}
-                            disabled={actionLoading !== null}
-                          >
-                            {actionLoading === company.id + '-reject' ? '...' : '✗ Recusar'}
-                          </button>
-                        </div>
-                      )}
-                      {company.status === 'APPROVED' && (
-                        <button
-                          className="btn-reject"
-                          onClick={() => openReject(company)}
-                          disabled={actionLoading !== null}
-                        >
-                          {actionLoading === company.id + '-reject' ? '...' : '✗ Recusar'}
-                        </button>
-                      )}
-                      {company.status === 'REJECTED' && (
-                        <button
-                          className="btn-approve"
-                          onClick={() => handleApprove(company.id)}
-                          disabled={actionLoading !== null}
-                        >
-                          {actionLoading === company.id + '-approve' ? '...' : '✓ Aprovar'}
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        {section === 'empresas' && <AdminCompanies onMenu={toggleSidebar} />}
+        {section === 'atividades' && <AdminActivities onMenu={toggleSidebar} />}
+        {section === 'noticias' && <AdminNews onMenu={toggleSidebar} />}
       </main>
-
-      {rejecting && (
-        <div className="modal-overlay" onClick={closeReject}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Recusar {rejecting.name}</h2>
-              <button className="modal-close" onClick={closeReject}>×</button>
-            </div>
-            <form onSubmit={handleReject} className="modal-form">
-              <div className="form-group">
-                <label htmlFor="reason">Motivo da recusa *</label>
-                <textarea
-                  id="reason"
-                  rows={4}
-                  placeholder="Ex.: Não conseguimos confirmar o CNPJ informado. Atualize o nome da empresa conforme o registro."
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  autoFocus
-                />
-                <small className="field-hint">A empresa verá esta mensagem no painel e poderá reenviar o cadastro.</small>
-              </div>
-
-              {rejectError && <p className="auth-error">{rejectError}</p>}
-
-              <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={closeReject} disabled={actionLoading !== null}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn-delete-confirm" disabled={actionLoading !== null}>
-                  {actionLoading ? 'Recusando...' : 'Recusar empresa'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

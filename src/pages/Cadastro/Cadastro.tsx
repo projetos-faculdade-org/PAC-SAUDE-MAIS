@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { formatPhone } from '../../lib/phone'
 import './Cadastro.css'
 
 export default function Cadastro() {
@@ -19,7 +20,8 @@ export default function Cadastro() {
   const [loading, setLoading] = useState(false)
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setForm({ ...form, [e.target.name]: e.target.value })
+    const { name, value } = e.target
+    setForm({ ...form, [name]: name === 'phone' ? formatPhone(value) : value })
   }
 
   async function handleSubmit(e: { preventDefault(): void }) {

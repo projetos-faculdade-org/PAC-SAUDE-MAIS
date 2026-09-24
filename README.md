@@ -49,8 +49,9 @@ make deploy
 
 ## Login do admin
 
-Criado automaticamente na primeira subida do backend, com os valores de
-`ADMIN_EMAIL` / `ADMIN_PASSWORD` do `.env`:
+O admin entra pela mesma tela das empresas (`/login`) e é levado direto para o
+painel administrativo. A conta é criada automaticamente na primeira subida do
+backend, com os valores de `ADMIN_EMAIL` / `ADMIN_PASSWORD` do `.env`:
 
 ```
 admin@jaraguamaissaudavel.com / admin123!
