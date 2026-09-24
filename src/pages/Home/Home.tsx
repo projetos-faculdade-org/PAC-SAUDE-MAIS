@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useActivities } from '../../contexts/ActivitiesContext'
+import { formatSchedule } from '../../lib/activity'
 import './Home.css'
 
 export default function Home() {
@@ -75,7 +76,7 @@ export default function Home() {
               </div>
               <p className="preview-description">{activity.description}</p>
               <div className="preview-info">
-                <span>🕐 {activity.schedule}</span>
+                <span>🕐 {formatSchedule(activity)}</span>
                 {activity.location && <span>📍 {activity.location}</span>}
               </div>
             </div>

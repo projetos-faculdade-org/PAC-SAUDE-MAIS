@@ -8,6 +8,13 @@ export interface Company {
   responsible?: string
   phone?: string
   status?: 'PENDING' | 'APPROVED' | 'REJECTED'
+  rejectionReason?: string | null
+}
+
+export interface ResubmitData {
+  companyName: string
+  responsible: string
+  phone?: string
 }
 
 export interface RegisterData {
@@ -24,6 +31,8 @@ interface AuthContextData {
   loading: boolean
   login: (email: string, password: string) => Promise<void>
   register: (data: RegisterData) => Promise<void>
+  refreshUser: () => Promise<void>
+  resubmit: (data: ResubmitData) => Promise<void>
   logout: () => void
   adminLogin: (email: string, password: string) => Promise<void>
   adminLogout: () => void
@@ -45,6 +54,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionStorage.setItem(USER_KEY, JSON.stringify(company))
     setUser(company)
   }, [])
+
+  const storeUser = useCallback((company: Company) => {
+    sessionStorage.setItem(USER_KEY, JSON.stringify(company))
+    setUser(company)
+  }, [])
+
+  // O status pode mudar pelo admin enquanto a sessão está aberta — o painel chama isso ao montar.
+  const refreshUser = useCallback(async () => {
+    const company: Company = await api.get('/auth/me')
+    storeUser(company)
+  }, [storeUser])
 
   useEffect(() => {
     const adminToken = localStorage.getItem(ADMIN_TOKEN_KEY)
@@ -89,6 +109,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     applySession(token, company)
   }
 
+  async function resubmit(data: ResubmitData) {
+    const company: Company = await api.put('/auth/resubmit', data)
+    storeUser(company)
+  }
+
   function logout() {
     localStorage.removeItem(TOKEN_KEY)
     sessionStorage.removeItem(USER_KEY)
@@ -107,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAdmin, loading, login, register, logout, adminLogin, adminLogout }}>
+    <AuthContext.Provider value={{ user, isAdmin, loading, login, register, refreshUser, resubmit, logout, adminLogin, adminLogout }}>
       {children}
     </AuthContext.Provider>
   )

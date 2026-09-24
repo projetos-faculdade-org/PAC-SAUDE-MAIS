@@ -3,6 +3,17 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { prisma } from '../lib/prisma'
 
+const companyPublicFields = {
+  id: true,
+  name: true,
+  email: true,
+  responsible: true,
+  phone: true,
+  status: true,
+  rejectionReason: true,
+  createdAt: true,
+} as const
+
 export async function register(req: Request, res: Response): Promise<void> {
   const { companyName, responsible, email, phone, password } = req.body
 
@@ -70,6 +81,7 @@ export async function login(req: Request, res: Response): Promise<void> {
       responsible: company.responsible,
       phone: company.phone,
       status: company.status,
+      rejectionReason: company.rejectionReason,
     },
   })
 }
@@ -77,7 +89,7 @@ export async function login(req: Request, res: Response): Promise<void> {
 export async function me(req: Request & { companyId?: string }, res: Response): Promise<void> {
   const company = await prisma.company.findUnique({
     where: { id: req.companyId },
-    select: { id: true, name: true, email: true, responsible: true, phone: true, status: true, createdAt: true },
+    select: companyPublicFields,
   })
 
   if (!company) {
@@ -86,4 +98,38 @@ export async function me(req: Request & { companyId?: string }, res: Response): 
   }
 
   res.json(company)
+}
+
+// Empresa recusada corrige os dados e volta para a fila de análise.
+export async function resubmit(req: Request & { companyId?: string }, res: Response): Promise<void> {
+  const { companyName, responsible, phone } = req.body as Record<string, string | undefined>
+
+  if (!companyName?.trim() || !responsible?.trim()) {
+    res.status(400).json({ error: 'Campos obrigatórios: companyName, responsible' })
+    return
+  }
+
+  const company = await prisma.company.findUnique({ where: { id: req.companyId } })
+  if (!company) {
+    res.status(404).json({ error: 'Empresa não encontrada' })
+    return
+  }
+
+  if (company.status !== 'REJECTED') {
+    res.status(409).json({ error: 'Apenas cadastros recusados podem ser reenviados' })
+    return
+  }
+
+  const updated = await prisma.company.update({
+    where: { id: company.id },
+    data: {
+      name: companyName.trim(),
+      responsible: responsible.trim(),
+      phone: phone?.trim() || null,
+      status: 'PENDING',
+    },
+    select: companyPublicFields,
+  })
+
+  res.json(updated)
 }

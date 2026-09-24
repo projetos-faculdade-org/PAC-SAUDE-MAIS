@@ -135,3 +135,16 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.status-note {
+  max-width: 220px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #777;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
