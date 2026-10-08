@@ -24,6 +24,8 @@ export function toActivityDTO(a: Activity & { company: { name: string } }) {
     schedule: a.schedule,
     location: a.location,
     neighborhood: a.neighborhood,
+    latitude: a.latitude,
+    longitude: a.longitude,
     isFree: a.isFree,
     price: a.price,
     whatsapp: a.whatsapp,
@@ -38,6 +40,17 @@ function normalizeWhatsapp(raw: string): string | null {
   if (digits.length === 10 || digits.length === 11) return `55${digits}`
   if ((digits.length === 12 || digits.length === 13) && digits.startsWith('55')) return digits
   return null
+}
+
+// Latitude e longitude vêm juntas ou nenhuma das duas.
+function parseCoordinates(lat: unknown, lng: unknown): { latitude: number | null; longitude: number | null } | null {
+  const empty = (v: unknown) => v === undefined || v === null || v === ''
+  if (empty(lat) && empty(lng)) return { latitude: null, longitude: null }
+  const latitude = Number(lat)
+  const longitude = Number(lng)
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null
+  if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return null
+  return { latitude, longitude }
 }
 
 // Data de hoje em Jaraguá — o container roda em UTC, então não dá para usar o fuso do servidor.
@@ -90,6 +103,9 @@ function parseActivityInput(body: Record<string, unknown>): ParseResult {
   const whatsapp = normalizeWhatsapp(str(body.whatsapp))
   if (!whatsapp) return { error: 'Informe um WhatsApp válido com DDD' }
 
+  const coords = parseCoordinates(body.latitude, body.longitude)
+  if (!coords) return { error: 'Localização no mapa inválida' }
+
   const isFree = body.isFree !== false
   const price = isFree ? null : str(body.price) || null
   if (!isFree && !price) return { error: 'Informe o valor da atividade' }
@@ -107,6 +123,7 @@ function parseActivityInput(body: Record<string, unknown>): ParseResult {
       schedule,
       location: str(body.location) || null,
       neighborhood: str(body.neighborhood) || null,
+      ...coords,
       isFree,
       price,
       whatsapp,
@@ -114,17 +131,37 @@ function parseActivityInput(body: Record<string, unknown>): ParseResult {
   }
 }
 
-// Público: só empresas aprovadas e sem atividades de data única que já passaram.
+// Atividades visíveis ao público: empresa aprovada e ativa, sem as de data única que já passaram.
+export function publicActivityWhere(): Prisma.ActivityWhereInput {
+  return {
+    company: { status: 'APPROVED', active: true },
+    OR: [{ scheduleType: { not: 'ONCE' } }, { date: { gte: new Date(`${todayISO()}T00:00:00.000Z`) } }],
+  }
+}
+
 export async function listActivities(_req: AuthRequest, res: Response): Promise<void> {
   const activities = await prisma.activity.findMany({
-    where: {
-      company: { status: 'APPROVED', active: true },
-      OR: [{ scheduleType: { not: 'ONCE' } }, { date: { gte: new Date(`${todayISO()}T00:00:00.000Z`) } }],
-    },
+    where: publicActivityWhere(),
     include: includeCompany,
     orderBy: { createdAt: 'desc' },
   })
   res.json(activities.map(toActivityDTO))
+}
+
+// Página de detalhe (link compartilhável). Atividades que já passaram continuam acessíveis,
+// para o link não quebrar — o front mostra como encerrada.
+export async function getActivity(req: AuthRequest, res: Response): Promise<void> {
+  const activity = await prisma.activity.findFirst({
+    where: { id: req.params.id as string, company: { status: 'APPROVED', active: true } },
+    include: includeCompany,
+  })
+
+  if (!activity) {
+    res.status(404).json({ error: 'Atividade não encontrada' })
+    return
+  }
+
+  res.json(toActivityDTO(activity))
 }
 
 // Painel da empresa: todas as atividades dela, inclusive as que já passaram.

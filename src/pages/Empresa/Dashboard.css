@@ -707,6 +707,15 @@
 }
 
 /* ─── Tabela ─── */
+.td-activity-link {
+  color: inherit;
+}
+
+.td-activity-link:hover {
+  color: #2e7d32;
+  text-decoration: underline;
+}
+
 .td-price,
 .td-neighborhood {
   font-size: 12px;

@@ -4,17 +4,20 @@ import { useActivities } from '../../contexts/ActivitiesContext'
 import {
   CATEGORIES,
   CATEGORY_LABEL,
+  hasCoordinates,
   nextOccurrence,
   sortByNextOccurrence,
   type Activity,
   type ActivityCategory,
 } from '../../lib/activity'
-import { LuHourglass, LuSearchX, LuTriangleAlert } from 'react-icons/lu'
+import { LuHourglass, LuList, LuMap, LuSearchX, LuTriangleAlert } from 'react-icons/lu'
 import ActivityCard from '../../components/ActivityCard/ActivityCard'
+import ActivitiesMap from '../../components/Map/ActivitiesMap'
 import './Atividades.css'
 
 type WhenFilter = 'ALL' | 'TODAY' | 'WEEK'
 type PriceFilter = 'ALL' | 'FREE' | 'PAID'
+type ViewMode = 'LIST' | 'MAP'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -42,7 +45,8 @@ function matchesWhen(activity: Activity, when: WhenFilter, today: Date) {
 export default function Atividades() {
   const { activities, loading, error } = useActivities()
   const [search, setSearch] = useState('')
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const view: ViewMode = searchParams.get('ver') === 'mapa' ? 'MAP' : 'LIST'
   const initialCategory = searchParams.get('categoria') as ActivityCategory | null
   const [category, setCategory] = useState<ActivityCategory | 'ALL'>(
     initialCategory && CATEGORIES.includes(initialCategory) ? initialCategory : 'ALL'
@@ -75,6 +79,18 @@ export default function Atividades() {
   }, [activities, search, category, neighborhood, price, when])
 
   const hasFilters = search || category !== 'ALL' || neighborhood !== 'ALL' || price !== 'ALL' || when !== 'ALL'
+
+  const withoutLocation = filtered.filter((a) => !hasCoordinates(a)).length
+
+  // A visualização fica na URL (?ver=mapa) para dar para compartilhar o link do mapa.
+  function setView(mode: ViewMode) {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      if (mode === 'MAP') next.set('ver', 'mapa')
+      else next.delete('ver')
+      return next
+    }, { replace: true })
+  }
 
   function clearFilters() {
     setSearch('')
@@ -139,6 +155,15 @@ export default function Atividades() {
             Limpar filtros
           </button>
         )}
+
+        <div className="view-toggle" role="group" aria-label="Visualização">
+          <button type="button" className={view === 'LIST' ? 'active' : undefined} onClick={() => setView('LIST')}>
+            <LuList /> Lista
+          </button>
+          <button type="button" className={view === 'MAP' ? 'active' : undefined} onClick={() => setView('MAP')}>
+            <LuMap /> Mapa
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -157,6 +182,17 @@ export default function Atividades() {
           <LuSearchX className="empty-icon" />
           <h3>Nenhuma atividade encontrada</h3>
           <p>Tente buscar por outro termo ou limpe os filtros.</p>
+        </div>
+      ) : view === 'MAP' ? (
+        <div className="map-view">
+          <ActivitiesMap activities={filtered} />
+          {withoutLocation > 0 && (
+            <p className="map-note">
+              {withoutLocation === filtered.length
+                ? 'Nenhuma destas atividades tem local marcado no mapa ainda. Veja-as na lista.'
+                : `${withoutLocation} ${withoutLocation === 1 ? 'atividade não aparece' : 'atividades não aparecem'} no mapa por não ter local marcado. Veja-as na lista.`}
+            </p>
+          )}
         </div>
       ) : (
         <div className="activities-grid">

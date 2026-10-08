@@ -1,0 +1,80 @@
+.activities-map {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  /* Mantém o mapa abaixo da navbar fixa e dos modais */
+  position: relative;
+  z-index: 0;
+}
+
+.map-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  color: #555;
+}
+
+.map-popup strong {
+  font-size: 15px;
+  color: #000;
+}
+
+.map-popup a {
+  margin-top: 4px;
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+.location-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.location-picker-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.location-picker-actions button:first-child {
+  padding: 8px 14px;
+  border: 1.5px solid #2e7d32;
+  border-radius: 6px;
+  background: #fff;
+  color: #2e7d32;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+}
+
+.location-picker-actions button:first-child:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  color: #c62828;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.location-picker-map {
+  height: 240px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1.5px solid #ddd;
+  position: relative;
+  z-index: 0;
+}

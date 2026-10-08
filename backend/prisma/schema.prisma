@@ -72,6 +72,8 @@ model Activity {
   schedule     String? // FLEXIBLE: obrigatório; demais: observação opcional
   location     String?
   neighborhood String?
+  latitude     Float? // ponto no mapa (opcional, escolhido pela empresa)
+  longitude    Float?
   isFree       Boolean          @default(true)
   price        String?
   whatsapp     String? // só dígitos, com DDI (ex.: 5547999999999)

@@ -29,6 +29,29 @@
   line-height: 1.3;
 }
 
+.activity-card-title {
+  color: inherit;
+}
+
+.activity-card-title:hover {
+  color: #2e7d32;
+}
+
+.activity-card-more {
+  align-self: flex-start;
+  font-size: 14px;
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+.activity-card-more:hover {
+  text-decoration: underline;
+}
+
+a.company-badge:hover {
+  background-color: #c8e6c9;
+}
+
 .company-badge {
   background-color: #e8f5e9;
   color: #2e7d32;
