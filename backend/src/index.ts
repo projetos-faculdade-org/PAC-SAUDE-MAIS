@@ -36,7 +36,13 @@ async function ensureAdmin() {
   console.log(`Admin padrão criado: ${email}`)
 }
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-  ensureAdmin().catch(console.error)
-})
+ensureAdmin().catch(console.error)
+
+// Na Vercel a função serverless usa o app exportado; localmente/Docker sobe o servidor normal.
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`)
+  })
+}
+
+export default app
