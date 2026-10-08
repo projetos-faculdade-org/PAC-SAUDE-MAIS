@@ -7,6 +7,8 @@ import Navbar from './components/Navbar/Navbar'
 import Footer from './components/Footer/Footer'
 import Home from './pages/Home/Home'
 import Atividades from './pages/Atividades/Atividades'
+import AtividadeDetalhe from './pages/AtividadeDetalhe/AtividadeDetalhe'
+import EmpresaPerfil from './pages/EmpresaPerfil/EmpresaPerfil'
 import Noticias from './pages/Noticias/Noticias'
 import Login from './pages/Login/Login'
 import Cadastro from './pages/Cadastro/Cadastro'
@@ -54,6 +56,22 @@ function App() {
               element={
                 <AppLayout>
                   <Atividades />
+                </AppLayout>
+              }
+            />
+            <Route
+              path="/atividades/:id"
+              element={
+                <AppLayout>
+                  <AtividadeDetalhe />
+                </AppLayout>
+              }
+            />
+            <Route
+              path="/empresas/:id"
+              element={
+                <AppLayout>
+                  <EmpresaPerfil />
                 </AppLayout>
               }
             />

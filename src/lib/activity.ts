@@ -25,6 +25,8 @@ export interface Activity {
   schedule: string | null
   location: string | null
   neighborhood: string | null
+  latitude: number | null
+  longitude: number | null
   isFree: boolean
   price: string | null
   whatsapp: string | null
@@ -115,6 +117,10 @@ export function sortByNextOccurrence(list: Activity[], from = new Date()) {
 
 export function isPast(a: Activity, from = new Date()) {
   return a.scheduleType === 'ONCE' && nextOccurrence(a, from) === null
+}
+
+export function hasCoordinates(a: Activity): a is Activity & { latitude: number; longitude: number } {
+  return a.latitude != null && a.longitude != null
 }
 
 export function whatsappLink(a: Activity) {

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { FaWhatsapp } from 'react-icons/fa'
 import { LuClock, LuMapPin } from 'react-icons/lu'
 import { CATEGORY_LABEL, formatSchedule, whatsappLink, type Activity } from '../../lib/activity'
@@ -7,16 +8,22 @@ interface Props {
   activity: Activity
   /** Descrição limitada a 3 linhas — usado na landing page. */
   compact?: boolean
+  /** Esconde o selo da empresa — usado no perfil da própria empresa. */
+  hideCompany?: boolean
 }
 
-export default function ActivityCard({ activity, compact = false }: Props) {
+export default function ActivityCard({ activity, compact = false, hideCompany = false }: Props) {
   const link = whatsappLink(activity)
 
   return (
     <div className={`activity-card${compact ? ' compact' : ''}`}>
       <div className="activity-card-header">
-        <h2>{activity.name}</h2>
-        <span className="company-badge">{activity.companyName}</span>
+        <h2>
+          <Link to={`/atividades/${activity.id}`} className="activity-card-title">{activity.name}</Link>
+        </h2>
+        {!hideCompany && (
+          <Link to={`/empresas/${activity.companyId}`} className="company-badge">{activity.companyName}</Link>
+        )}
       </div>
 
       <div className="activity-tags">
@@ -45,6 +52,8 @@ export default function ActivityCard({ activity, compact = false }: Props) {
           </div>
         )}
       </div>
+
+      <Link to={`/atividades/${activity.id}`} className="activity-card-more">Ver detalhes</Link>
 
       {link && (
         <a className="btn-participate" href={link} target="_blank" rel="noopener noreferrer">

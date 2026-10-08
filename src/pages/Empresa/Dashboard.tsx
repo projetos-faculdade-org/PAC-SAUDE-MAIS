@@ -13,6 +13,7 @@ import {
   type ScheduleType,
 } from '../../lib/activity'
 import { formatPhone } from '../../lib/phone'
+import LocationPicker from '../../components/Map/LocationPicker'
 import { LuCircleX, LuClipboardList, LuHourglass, LuMenu, LuPencil, LuTrash2, LuTriangleAlert, LuX } from 'react-icons/lu'
 import './Dashboard.css'
 
@@ -28,6 +29,7 @@ type ActivityFormData = {
   schedule: string
   location: string
   neighborhood: string
+  coordinates: [number, number] | null
   isFree: boolean
   price: string
   whatsapp: string
@@ -45,6 +47,7 @@ const EMPTY_FORM: ActivityFormData = {
   schedule: '',
   location: '',
   neighborhood: '',
+  coordinates: null,
   isFree: true,
   price: '',
   whatsapp: '',
@@ -233,6 +236,8 @@ export default function Dashboard() {
       schedule: activity.schedule ?? '',
       location: activity.location ?? '',
       neighborhood: activity.neighborhood ?? '',
+      coordinates:
+        activity.latitude != null && activity.longitude != null ? [activity.latitude, activity.longitude] : null,
       isFree: activity.isFree,
       price: activity.price ?? '',
       whatsapp: formatPhone(activity.whatsapp),
@@ -306,6 +311,8 @@ export default function Dashboard() {
       schedule: form.schedule.trim() || null,
       location: form.location.trim() || null,
       neighborhood: form.neighborhood.trim() || null,
+      latitude: form.coordinates?.[0] ?? null,
+      longitude: form.coordinates?.[1] ?? null,
       isFree: form.isFree,
       price: form.isFree ? null : form.price.trim(),
       whatsapp: form.whatsapp,
@@ -417,7 +424,9 @@ export default function Dashboard() {
                 {myActivities.map((activity) => (
                   <tr key={activity.id} className={isPast(activity) ? 'row-past' : undefined}>
                     <td>
-                      <strong>{activity.name}</strong>
+                      <a href={`/atividades/${activity.id}`} target="_blank" rel="noopener noreferrer" className="td-activity-link">
+                        <strong>{activity.name}</strong>
+                      </a>
                       <div className="td-price">{activity.isFree ? 'Gratuita' : activity.price}</div>
                     </td>
                     <td>{CATEGORY_LABEL[activity.category]}</td>
@@ -602,6 +611,16 @@ export default function Dashboard() {
                     onChange={handleFormChange}
                   />
                 </div>
+              </div>
+
+              <div className="form-group">
+                <label>Localização no mapa <span className="optional">(opcional)</span></label>
+                <LocationPicker
+                  value={form.coordinates}
+                  onChange={(coordinates) => setForm((prev) => ({ ...prev, coordinates }))}
+                  location={form.location}
+                  neighborhood={form.neighborhood}
+                />
               </div>
 
               <div className="form-group">
